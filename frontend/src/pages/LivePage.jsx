@@ -3,7 +3,7 @@ import { Camera, CameraOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { StatCard, RiskBadge, LoadingSpinner } from '../components/UI';
-import { api } from '../services/api';
+import api from '../services/api';
 
 export default function LivePage() {
   const [active, setActive] = useState(false);
