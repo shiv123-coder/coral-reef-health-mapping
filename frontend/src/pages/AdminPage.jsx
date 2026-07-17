@@ -1,8 +1,10 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
+import NotificationDropdown from '../components/NotificationDropdown';
 import { adminGetUsers, adminGetAnalyses, adminGetAnalytics, adminUpdateUser, adminDeleteUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../hooks/useNotifications';
 
 export default function AdminPage() {
   const [users, setUsers] = useState([]);
@@ -15,6 +17,10 @@ export default function AdminPage() {
   const [editingUser, setEditingUser] = useState(null);
   const [editForm, setEditForm] = useState({ firstName: '', lastName: '', role: '' });
   
+  // Notification State
+  const { createNotification, adminDeleteNotification, notifications } = useNotifications();
+  const [notifForm, setNotifForm] = useState({ title: '', message: '', type: 'info' });
+
   const { user } = useAuth();
 
   useEffect(() => {
@@ -90,6 +96,17 @@ export default function AdminPage() {
   // Recent analyses
   const recentAnalyses = analyses.slice(0, 3);
 
+  const handleSendNotification = async () => {
+    if (!notifForm.title || !notifForm.message) return alert("Title and message required");
+    try {
+      await createNotification({ userId: 'global', ...notifForm });
+      setNotifForm({ title: '', message: '', type: 'info' });
+      alert("Notification sent to all users!");
+    } catch (e) {
+      alert("Failed to send notification: " + e.message);
+    }
+  };
+
   return (
     <div className="layout" style={{ display: 'grid', gridTemplateColumns: '230px 1fr', minHeight: '100vh', background: 'var(--bg)' }}>
       <Sidebar />
@@ -105,10 +122,7 @@ export default function AdminPage() {
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
               <input type="text" placeholder="Search anything..." style={{ background: 'none', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 13.5, width: '100%' }} />
             </div>
-            <div style={{ position: 'relative', width: 40, height: 40, borderRadius: 11, background: 'var(--card)', border: '1px solid var(--card-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)', cursor: 'pointer' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
-              <span style={{ position: 'absolute', top: -4, right: -4, background: 'var(--red)', color: '#fff', fontSize: 10, fontWeight: 700, width: 17, height: 17, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg)' }}>5</span>
-            </div>
+            <NotificationDropdown />
             <div onClick={toggleTheme} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card)', border: '1px solid var(--card-border)', padding: '10px 16px', borderRadius: 11, fontSize: 13, color: 'var(--text-dim)', cursor: 'pointer' }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
               <span>{isDark ? 'Dark Mode' : 'Light Mode'}</span>
@@ -412,26 +426,39 @@ export default function AdminPage() {
             </table>
           </div>
 
-          <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 22 }}>
+          <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 22, display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700 }}>Alerts &amp; Notifications</h3>
-              <a href="#" style={{ fontSize: 12.5, color: 'var(--cyan)' }}>View All</a>
+              <h3 style={{ fontSize: 16, fontWeight: 700 }}>Manage Notifications</h3>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <span style={{ width: 34, height: 34, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', background: 'rgba(255,183,77,0.15)', color: 'var(--amber)' }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 9v4M12 17h.01M10.3 3.9L2.7 17a2 2 0 001.7 3h15.2a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></span>
-                <div style={{ flex: 1 }}><div style={{ fontSize: 13, fontWeight: 600 }}>High bleaching detected</div><div style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>Immediate attention required</div></div>
-                <div style={{ fontSize: 11, color: 'var(--text-faint)', whiteSpace: 'nowrap', textAlign: 'right' }}>Today<br/>06:30 AM</div>
+            
+            <div style={{ marginBottom: 20 }}>
+              <input type="text" placeholder="Notification Title" value={notifForm.title} onChange={e => setNotifForm({...notifForm, title: e.target.value})} style={{ width: '100%', padding: '10px 14px', borderRadius: 9, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', color: 'var(--text)', marginBottom: 10, fontSize: 13 }} />
+              <textarea placeholder="Notification Message" value={notifForm.message} onChange={e => setNotifForm({...notifForm, message: e.target.value})} style={{ width: '100%', padding: '10px 14px', borderRadius: 9, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', color: 'var(--text)', marginBottom: 10, fontSize: 13, minHeight: 60, resize: 'vertical' }} />
+              <div style={{ display: 'flex', gap: 10 }}>
+                <select value={notifForm.type} onChange={e => setNotifForm({...notifForm, type: e.target.value})} style={{ flex: 1, padding: '10px 14px', borderRadius: 9, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: 13 }}>
+                  <option value="info">Info</option>
+                  <option value="success">Success</option>
+                  <option value="warning">Warning</option>
+                  <option value="error">Error</option>
+                </select>
+                <button onClick={handleSendNotification} style={{ padding: '10px 20px', borderRadius: 9, background: 'var(--cyan)', border: 'none', color: '#04101f', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Send to All</button>
               </div>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <span style={{ width: 34, height: 34, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', background: 'rgba(255,107,107,0.15)', color: 'var(--red)' }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span>
-                <div style={{ flex: 1 }}><div style={{ fontSize: 13, fontWeight: 600 }}>Low coral coverage in Andaman</div><div style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>Coverage dropped below 30%</div></div>
-                <div style={{ fontSize: 11, color: 'var(--text-faint)', whiteSpace: 'nowrap', textAlign: 'right' }}>Yesterday<br/>04:15 PM</div>
-              </div>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <span style={{ width: 34, height: 34, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', background: 'rgba(59,158,255,0.15)', color: '#5db8ff' }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="16" x2="12" y2="11"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
-                <div style={{ flex: 1 }}><div style={{ fontSize: 13, fontWeight: 600 }}>New analysis completed</div><div style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>GOPR1234_20250524.jpg</div></div>
-                <div style={{ fontSize: 11, color: 'var(--text-faint)', whiteSpace: 'nowrap', textAlign: 'right' }}>Yesterday<br/>10:45 AM</div>
+            </div>
+
+            <div style={{ flex: 1, overflowY: 'auto', borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+              <h4 style={{ fontSize: 13, color: 'var(--text-faint)', marginBottom: 12 }}>Global Notifications</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {notifications.filter(n => n.userId === 'global').map(n => (
+                  <div key={n.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', background: 'rgba(255,255,255,0.02)', padding: 12, borderRadius: 8 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{n.title}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-dim)' }}>{n.message}</div>
+                    </div>
+                    <button onClick={() => adminDeleteNotification(n.id)} style={{ background: 'none', border: 'none', color: 'var(--red)', cursor: 'pointer', padding: 4 }} title="Delete globally">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
