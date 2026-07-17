@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, fetchSignInMethodsForEmail } from 'firebase/auth';
 import { motion } from 'framer-motion';
 import { auth, googleProvider } from '../firebase';
 import BackgroundOrbs from '../components/UI';
@@ -21,6 +21,17 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
       navigate('/dashboard');
     } catch (err) {
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+        try {
+          const methods = await fetchSignInMethodsForEmail(auth, email);
+          if (methods.includes('google.com') && !methods.includes('password')) {
+            setError('Account secured via SSO. Please click "Continue with Google Workspace" below.');
+            return;
+          }
+        } catch (e) {
+          // ignore fetch error
+        }
+      }
       setError(err.message.replace('Firebase: ', '').replace(/\(auth\/.*\)/, '').trim());
     } finally {
       setLoading(false);

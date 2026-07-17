@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Eye, EyeOff } from 'lucide-react';
 
 function getPasswordStrength(password) {
   if (!password) return { score: 0, label: '', level: '' };
@@ -19,6 +20,7 @@ function getPasswordStrength(password) {
 export default function PasswordField({ value, onChange, label = 'Password', placeholder = 'Enter password' }) {
   const [focused, setFocused] = useState(false);
   const [typing, setTyping] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const strength = getPasswordStrength(value);
 
   useEffect(() => {
@@ -32,17 +34,40 @@ export default function PasswordField({ value, onChange, label = 'Password', pla
   return (
     <div className={`input-group password-wrapper password-typing ${typing ? 'active' : ''}`}>
       <label>{label}</label>
-      <motion.input
-        type="password"
-        className="input-field"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        placeholder={placeholder}
-        animate={typing ? { scale: [1, 1.01, 1] } : {}}
-        transition={{ duration: 0.2 }}
-      />
+      <div style={{ position: 'relative' }}>
+        <motion.input
+          type={showPassword ? "text" : "password"}
+          className="input-field"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={placeholder}
+          animate={typing ? { scale: [1, 1.01, 1] } : {}}
+          transition={{ duration: 0.2 }}
+          style={{ paddingRight: 40 }}
+        />
+        <button 
+          type="button" 
+          onClick={() => setShowPassword(!showPassword)}
+          style={{
+            position: 'absolute',
+            right: 12,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-muted)',
+            cursor: 'pointer',
+            padding: 4,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+        </button>
+      </div>
       {(focused || value) && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}

@@ -116,8 +116,10 @@ export default function SignupPage() {
       <div className="auth-container">
         <motion.div
           className="auth-card wide glass"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.95, rotateX: 10 }}
+          animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          style={{ perspective: 1000 }}
         >
           <h1 className="auth-title">Create Account</h1>
           <p className="auth-subtitle">Join the Coral Reef Health Mapping platform</p>
