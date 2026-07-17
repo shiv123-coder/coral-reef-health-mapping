@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import Navbar from '../components/Navbar';
 import BackgroundOrbs, { GlassCard, RiskBadge, LoadingSpinner } from '../components/UI';
 import { getAnalysisHistory, getComparison, downloadPdf, downloadCsv } from '../services/api';
-import { Search, Download, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Search, Download, TrendingUp, TrendingDown, Minus, Database, Key } from 'lucide-react';
 
 export default function HistoryPage() {
   const [history, setHistory] = useState([]);
@@ -26,6 +26,27 @@ export default function HistoryPage() {
     a.click();
   };
 
+  const exportCsv = async () => {
+    try {
+      const res = await downloadCsv(); // Assumes backend supports this, if not we create a client side blob
+      const url = window.URL.createObjectURL(new Blob([res.data || res]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `coral_telemetry_export_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+    } catch (e) {
+      // Fallback: client side CSV generation if API route is not yet fully linked
+      const header = "AnalysisID,FileName,HealthyPct,BleachedPct,DeadPct,AlgaePct,RiskLevel,Date\n";
+      const rows = history.map(h => `${h.analysisId},${h.fileName},${h.healthyCoralPct},${h.bleachedCoralPct},${h.deadCoralPct},${h.algaePct},${h.riskLevel},${new Date(h.createdAt).toISOString()}`).join("\n");
+      const blob = new Blob([header + rows], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `telemetry_export.csv`;
+      a.click();
+    }
+  };
+
   const filteredHistory = useMemo(() => {
     return history.filter(h => 
       h.fileName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -46,14 +67,27 @@ export default function HistoryPage() {
     <>
       <BackgroundOrbs />
       <Navbar />
-      <div className="page-container">
-        <div style={{ marginBottom: 32 }}>
-          <h1 className="page-title">Analysis History</h1>
-          <p className="page-subtitle">Personal history of uploads and reports with historical comparison</p>
+      <div className="page-container" style={{ maxWidth: 1400 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24, borderBottom: '1px solid var(--border-color)', paddingBottom: 16 }}>
+          <div>
+            <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Database size={28} color="var(--primary-500)" />
+              Telemetry Data Warehouse
+            </h1>
+            <p className="page-subtitle" style={{ margin: 0 }}>Enterprise data export, historical trends, and API management</p>
+          </div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button className="btn btn-ghost" style={{ padding: '8px 16px', fontSize: '0.85rem' }} onClick={() => alert("API Key generation is restricted to Government Auditor roles.")}>
+              <Key size={16} /> Manage API Keys
+            </button>
+            <button className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '0.85rem' }} onClick={exportCsv}>
+              <Download size={16} /> Export to CSV (Dataset)
+            </button>
+          </div>
         </div>
 
         {loading ? (
-          <LoadingSpinner />
+          <LoadingSpinner text="Querying data warehouse..." />
         ) : (
           <>
             {comparison?.comparisons?.length > 0 && (
@@ -103,7 +137,7 @@ export default function HistoryPage() {
                   <input 
                     className="input-field" 
                     style={{ paddingLeft: 40 }} 
-                    placeholder="Search by file name..." 
+                    placeholder="Search telemetry by file name..." 
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -145,7 +179,7 @@ export default function HistoryPage() {
                         </td>
                       </tr>
                     )) : (
-                      <tr><td colSpan="8" style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>No uploads found matching your search.</td></tr>
+                      <tr><td colSpan="8" style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>No telemetry found matching your search.</td></tr>
                     )}
                   </tbody>
                 </table>

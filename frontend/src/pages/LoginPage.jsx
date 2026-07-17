@@ -52,29 +52,29 @@ export default function LoginPage() {
 
           {error && <div className="auth-error">{error}</div>}
 
-          <button className="btn btn-google" onClick={handleGoogle} type="button">
-            Continue with Google
-          </button>
-
-          <div className="auth-divider">or sign in with email</div>
-
           <form onSubmit={handleLogin}>
             <div className="input-group">
-              <label>Email</label>
+              <label>Professional Email</label>
               <input
                 type="email"
                 className="input-field"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@university.edu"
+                placeholder="name@organization.org"
                 required
               />
             </div>
             <PasswordField value={password} onChange={setPassword} />
             <button className="btn btn-primary" style={{ width: '100%', marginTop: 8 }} disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? 'Authenticating...' : 'Sign In'}
             </button>
           </form>
+
+          <div className="auth-divider">or authenticate via SSO</div>
+
+          <button className="btn btn-google" onClick={handleGoogle} type="button">
+            Continue with Google Workspace
+          </button>
 
           <p className="auth-footer">
             Don&apos;t have an account? <Link to="/signup">Create one</Link>

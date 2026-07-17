@@ -133,16 +133,17 @@ export default function SignupPage() {
           <AnimatePresence mode="wait">
             {step === 0 && (
               <motion.div key="s0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                <button className="btn btn-google" onClick={handleGoogleSignup} type="button" disabled={loading}>
-                  Sign up with Google
-                </button>
-                <div className="auth-divider">or create with email</div>
                 <div className="input-group">
-                  <label>Email Address</label>
-                  <input type="email" className="input-field" value={form.email} onChange={(e) => update('email', e.target.value)} placeholder="you@university.edu" />
+                  <label>Professional Email</label>
+                  <input type="email" className="input-field" value={form.email} onChange={(e) => update('email', e.target.value)} placeholder="name@organization.org" />
                 </div>
                 <PasswordField value={form.password} onChange={(v) => update('password', v)} label="Password" />
                 <PasswordField value={form.confirmPassword} onChange={(v) => update('confirmPassword', v)} label="Confirm Password" placeholder="Re-enter password" />
+                
+                <div className="auth-divider" style={{ marginTop: 24 }}>or authenticate via SSO</div>
+                <button className="btn btn-google" onClick={handleGoogleSignup} type="button" disabled={loading}>
+                  Continue with Google Workspace
+                </button>
               </motion.div>
             )}
 
@@ -182,9 +183,10 @@ export default function SignupPage() {
                 <div className="input-group">
                   <label>Role</label>
                   <select className="input-field" value={form.role} onChange={(e) => update('role', e.target.value)}>
-                    <option value="student">Student</option>
-                    <option value="researcher">Researcher</option>
-                    <option value="viewer">Viewer</option>
+                    <option value="marine_biologist">Marine Biologist (Field Agent)</option>
+                    <option value="ngo_partner">NGO Partner</option>
+                    <option value="auditor">Government Auditor</option>
+                    <option value="student">Student / Academic</option>
                   </select>
                 </div>
               </motion.div>
