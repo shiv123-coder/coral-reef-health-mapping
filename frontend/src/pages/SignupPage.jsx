@@ -144,7 +144,13 @@ export default function SignupPage() {
       });
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.detail || err.message.replace('Firebase: ', ''));
+      if (err.code === 'auth/email-already-in-use') {
+        setError('This email is already registered. Please sign in.');
+      } else if (err.code === 'auth/weak-password') {
+        setError('Password should be at least 6 characters.');
+      } else {
+        setError(err.response?.data?.detail || err.message.replace('Firebase: ', '').replace(/\(auth\/.*\)/, '').trim() || 'An error occurred during sign up.');
+      }
     } finally {
       setLoading(false);
     }

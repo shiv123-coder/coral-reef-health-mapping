@@ -70,8 +70,14 @@ export default function LoginPage() {
         } catch (e) {
           // ignore fetch error
         }
+        setError('Invalid email or password.');
+      } else if (err.code === 'auth/user-not-found') {
+        setError('No account found with this email.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Too many failed login attempts. Please try again later.');
+      } else {
+        setError(err.message || 'An error occurred during sign in.');
       }
-      setError(err.message.replace('Firebase: ', '').replace(/\(auth\/.*\)/, '').trim());
     } finally {
       setLoading(false);
     }
