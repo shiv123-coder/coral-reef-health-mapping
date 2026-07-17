@@ -175,7 +175,9 @@ export default function LoginPage() {
               <svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M12 2C9 2 7 5 7 8c0 2 1 3 1 5 0 3-2 4-2 7 0 1 1 2 2 2s2-1 2-2c0-2 1-3 2-3s2 1 2 3c0 1 1 2 2 2s2-1 2-2c0-3-2-4-2-7 0-2 1-3 1-5 0-3-2-6-5-6z" fill="url(#lg2)"/><defs><linearGradient id="lg2" x1="7" y1="2" x2="17" y2="22"><stop stopColor="#4fd6e8"/><stop offset="1" stopColor="#3b7dff"/></linearGradient></defs></svg>
             </div>
             
-            <h2 style={{ fontSize: 26, textAlign: 'center', fontWeight: 800, marginBottom: 8 }}>Welcome <span style={{ background: 'linear-gradient(90deg,#5db8ff,#4fd6e8)', WebkitBackgroundClip: 'text', color: 'transparent' }}>Back</span></h2>
+            <h2 style={{ fontSize: 26, textAlign: 'center', fontWeight: 800, marginBottom: 8 }}>
+              {new Date().getHours() < 12 ? 'Good Morning' : new Date().getHours() < 18 ? 'Good Afternoon' : 'Good Evening'} <span style={{ background: 'linear-gradient(90deg,#5db8ff,#4fd6e8)', WebkitBackgroundClip: 'text', color: 'transparent' }}>👋</span>
+            </h2>
             <p style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: 14, marginBottom: 30 }}>Sign in to continue to your CoralAI account</p>
 
             {error && <div className="auth-error">{error}</div>}
