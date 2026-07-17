@@ -26,10 +26,33 @@ async def admin_analytics(admin: dict = Depends(require_admin)):
     return get_system_analytics()
 
 
-@router.put("/users/{uid}/role")
-async def admin_update_role(uid: str, role: str, admin: dict = Depends(require_admin)):
-    """Change user role."""
-    if role not in ("admin", "researcher", "student", "viewer"):
+from pydantic import BaseModel
+from typing import Optional
+
+class UserUpdate(BaseModel):
+    firstName: Optional[str] = None
+    lastName: Optional[str] = None
+    organization: Optional[str] = None
+    role: Optional[str] = None
+
+@router.put("/users/{uid}")
+async def admin_update_user(uid: str, update: UserUpdate, admin: dict = Depends(require_admin)):
+    """Update user profile."""
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    
+    if "role" in update_data and update_data["role"] not in ("admin", "researcher", "student", "viewer"):
         raise HTTPException(400, "Invalid role")
-    update_user_profile(uid, {"role": role})
-    return {"message": f"Role updated to {role}"}
+        
+    from app.core.firebase import update_user_profile
+    update_user_profile(uid, update_data)
+    return {"message": "User updated", "data": update_data}
+
+
+@router.delete("/users/{uid}")
+async def admin_delete_user(uid: str, admin: dict = Depends(require_admin)):
+    """Delete a user."""
+    from app.core.firebase import delete_user_profile
+    success = delete_user_profile(uid)
+    if not success:
+        raise HTTPException(500, "Failed to delete user")
+    return {"message": "User deleted"}

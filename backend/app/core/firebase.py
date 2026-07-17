@@ -83,6 +83,20 @@ def update_user_profile(uid: str, data: dict) -> dict:
     return data
 
 
+def delete_user_profile(uid: str) -> bool:
+    db = get_db()
+    if db is None:
+        return False
+    # Delete from Firestore
+    db.collection("users").document(uid).delete()
+    # Try to delete from Firebase Auth
+    try:
+        auth.delete_user(uid)
+    except Exception as e:
+        print(f"Failed to delete auth user {uid}: {e}")
+    return True
+
+
 def list_all_users() -> list:
     db = get_db()
     if db is None:

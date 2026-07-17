@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { adminGetUsers, adminGetAnalyses, adminGetAnalytics, adminOverrideReport } from '../services/api';
+import { adminGetUsers, adminGetAnalyses, adminGetAnalytics, adminUpdateUser, adminDeleteUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 export default function AdminPage() {
@@ -10,6 +10,11 @@ export default function AdminPage() {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(true);
+  
+  // Edit User State
+  const [editingUser, setEditingUser] = useState(null);
+  const [editForm, setEditForm] = useState({ firstName: '', lastName: '', role: '' });
+  
   const { user } = useAuth();
 
   useEffect(() => {
@@ -54,7 +59,34 @@ export default function AdminPage() {
   };
 
   // Recent users
-  const recentUsers = users.slice(0, 5);
+  const recentUsers = users.slice(0, 10);
+  
+  const handleDeleteUser = async (uid) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    try {
+      await adminDeleteUser(uid);
+      setUsers(u => u.filter(x => x.uid !== uid));
+    } catch (e) {
+      alert("Failed to delete user: " + (e.response?.data?.detail || e.message));
+    }
+  };
+
+  const handleEditClick = (u) => {
+    setEditingUser(u);
+    setEditForm({ firstName: u.firstName || '', lastName: u.lastName || '', role: u.role || 'student' });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingUser) return;
+    try {
+      await adminUpdateUser(editingUser.uid, editForm);
+      setUsers(u => u.map(x => x.uid === editingUser.uid ? { ...x, ...editForm } : x));
+      setEditingUser(null);
+    } catch (e) {
+      alert("Failed to update user: " + (e.response?.data?.detail || e.message));
+    }
+  };
+
   // Recent analyses
   const recentAnalyses = analyses.slice(0, 3);
 
@@ -352,6 +384,7 @@ export default function AdminPage() {
                   <th style={{ textAlign: 'left', fontSize: 11.5, color: 'var(--text-faint)', fontWeight: 600, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>Role</th>
                   <th style={{ textAlign: 'left', fontSize: 11.5, color: 'var(--text-faint)', fontWeight: 600, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>Joined On</th>
                   <th style={{ textAlign: 'left', fontSize: 11.5, color: 'var(--text-faint)', fontWeight: 600, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>Status</th>
+                  <th style={{ textAlign: 'right', fontSize: 11.5, color: 'var(--text-faint)', fontWeight: 600, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -360,17 +393,21 @@ export default function AdminPage() {
                     <td style={{ padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: 13, verticalAlign: 'middle' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div style={{ width: 30, height: 30, borderRadius: '50%', flex: 'none', background: 'linear-gradient(135deg,#3b7dff,#4fd6e8)' }}></div>
-                        {u.firstName || 'User'}
+                        {u.firstName || 'User'} {u.lastName || ''}
                       </div>
                     </td>
                     <td style={{ padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: 13, verticalAlign: 'middle', color: 'var(--text-dim)' }}>{u.email}</td>
-                    <td style={{ padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: 13, verticalAlign: 'middle', color: 'var(--text-dim)' }}>{u.role?.toUpperCase() || 'USER'}</td>
+                    <td style={{ padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: 13, verticalAlign: 'middle', color: 'var(--text-dim)' }}>{u.role?.toUpperCase() || 'STUDENT'}</td>
                     <td style={{ padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: 13, verticalAlign: 'middle', color: 'var(--text-dim)' }}>{new Date(u.createdAt).toLocaleDateString()}</td>
                     <td style={{ padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: 13, verticalAlign: 'middle' }}>
                       <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 99, background: 'rgba(94,224,145,0.15)', color: 'var(--green)' }}>Active</span>
                     </td>
+                    <td style={{ padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: 13, verticalAlign: 'middle', textAlign: 'right' }}>
+                      <button onClick={() => handleEditClick(u)} style={{ background: 'none', border: 'none', color: 'var(--cyan)', cursor: 'pointer', padding: '4px 8px', fontSize: 12, marginRight: 8 }}>Edit</button>
+                      <button onClick={() => handleDeleteUser(u.uid)} style={{ background: 'rgba(255,107,107,0.1)', border: '1px solid rgba(255,107,107,0.3)', color: 'var(--red)', cursor: 'pointer', padding: '4px 8px', borderRadius: 6, fontSize: 12 }}>Delete</button>
+                    </td>
                   </tr>
-                )) : <tr><td colSpan={5} style={{ padding: '12px 0', color: 'var(--text-muted)' }}>No users found.</td></tr>}
+                )) : <tr><td colSpan={6} style={{ padding: '12px 0', color: 'var(--text-muted)' }}>No users found.</td></tr>}
               </tbody>
             </table>
           </div>
@@ -404,6 +441,34 @@ export default function AdminPage() {
           <span>© 2025 CoralAI. All rights reserved.</span>
           <span>Together, let&apos;s protect <a href="#" style={{ color: 'var(--cyan)' }}>our oceans</a> 🌊</span>
         </footer>
+
+        {editingUser && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(4,14,26,0.85)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+            <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 30, width: 400, maxWidth: '90%' }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Edit User</h3>
+              
+              <label style={{ display: 'block', fontSize: 12.5, color: 'var(--text-dim)', marginBottom: 6 }}>First Name</label>
+              <input type="text" value={editForm.firstName} onChange={e => setEditForm({ ...editForm, firstName: e.target.value })} style={{ width: '100%', padding: '10px 14px', borderRadius: 9, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', color: 'var(--text)', marginBottom: 16 }} />
+
+              <label style={{ display: 'block', fontSize: 12.5, color: 'var(--text-dim)', marginBottom: 6 }}>Last Name</label>
+              <input type="text" value={editForm.lastName} onChange={e => setEditForm({ ...editForm, lastName: e.target.value })} style={{ width: '100%', padding: '10px 14px', borderRadius: 9, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', color: 'var(--text)', marginBottom: 16 }} />
+
+              <label style={{ display: 'block', fontSize: 12.5, color: 'var(--text-dim)', marginBottom: 6 }}>Role</label>
+              <select value={editForm.role} onChange={e => setEditForm({ ...editForm, role: e.target.value })} style={{ width: '100%', padding: '10px 14px', borderRadius: 9, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', color: 'var(--text)', marginBottom: 24 }}>
+                <option value="admin">Admin</option>
+                <option value="researcher">Researcher</option>
+                <option value="student">Student</option>
+                <option value="viewer">Viewer</option>
+              </select>
+
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button onClick={() => setEditingUser(null)} style={{ flex: 1, padding: '10px', borderRadius: 9, background: 'rgba(255,255,255,0.05)', border: 'none', color: 'var(--text)', cursor: 'pointer' }}>Cancel</button>
+                <button onClick={handleSaveEdit} style={{ flex: 1, padding: '10px', borderRadius: 9, background: 'var(--cyan)', border: 'none', color: '#04101f', fontWeight: 600, cursor: 'pointer' }}>Save Changes</button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
     </div>
   );

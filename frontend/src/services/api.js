@@ -49,6 +49,8 @@ export const registerProfile = (payload) => api.post('/auth/register', payload).
 export const getMe = () => api.get('/auth/me').then(r => r.data);
 export const getPublicReport = (token) => api.get(`/public/report/${token}`).then(r => r.data);
 export const adminGetUsers = () => api.get('/admin/users').then(r => r.data);
+export const adminUpdateUser = (id, payload) => api.put(`/admin/users/${id}`, payload).then(r => r.data);
+export const adminDeleteUser = (id) => api.delete(`/admin/users/${id}`).then(r => r.data);
 export const adminGetAnalyses = () => api.get('/admin/analyses').then(r => r.data);
 export const adminGetAnalytics = () => api.get('/admin/analytics').then(r => r.data);
 export const adminOverrideReport = (id, payload) => api.put(`/reports/${id}/override`, payload).then(r => r.data);
