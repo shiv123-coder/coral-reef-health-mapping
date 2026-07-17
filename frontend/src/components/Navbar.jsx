@@ -2,6 +2,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Waves, LogOut } from 'lucide-react';
 
+import ThemeToggle from './ThemeToggle';
+
 export default function Navbar() {
   const { profile, logout, isAdmin } = useAuth();
   const location = useLocation();
@@ -31,10 +33,11 @@ export default function Navbar() {
           </Link>
         ))}
         {profile && (
-          <span style={{ color: '#94a3b8', fontSize: '0.85rem', marginLeft: 8 }}>
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: 8 }}>
             {profile.firstName} ({profile.role})
           </span>
         )}
+        <ThemeToggle />
         <button className="btn btn-ghost" onClick={logout} style={{ padding: '8px 12px' }}>
           <LogOut size={16} />
         </button>
