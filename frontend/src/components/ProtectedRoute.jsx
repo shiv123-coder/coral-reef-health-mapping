@@ -13,8 +13,29 @@ export function ProtectedRoute({ children, adminOnly = false }) {
 }
 
 export function PublicRoute({ children }) {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   if (loading) return <LoadingSpinner />;
-  if (user) return <Navigate to="/dashboard" replace />;
+  
+  if (user) {
+    if (profile?.role === 'admin') {
+      return <Navigate to="/admin" replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
+  }
+  
   return children;
+}
+
+export function RootRedirect() {
+  const { user, profile, loading } = useAuth();
+  if (loading) return <LoadingSpinner />;
+  
+  if (user) {
+    if (profile?.role === 'admin') {
+      return <Navigate to="/admin" replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <Navigate to="/login" replace />;
 }

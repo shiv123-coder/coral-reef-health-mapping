@@ -18,10 +18,10 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const healthyPct = stats?.healthyCoralPct || 48.6;
-  const bleachedPct = stats?.bleachedCoralPct || 22.3;
-  const deadPct = stats?.deadCoralPct || 12.7;
-  const algaePct = stats?.algaePct || 10.1;
+  const healthyPct = stats?.healthyCoralPct ?? 0;
+  const bleachedPct = stats?.bleachedCoralPct ?? 0;
+  const deadPct = stats?.deadCoralPct ?? 0;
+  const algaePct = stats?.algaePct ?? 0;
   const sandPct = Math.max(0, 100 - (healthyPct + bleachedPct + deadPct + algaePct));
 
   // Calculate SVG stroke dash offsets for the donut chart
@@ -45,6 +45,8 @@ export default function DashboardPage() {
 
   // Most recent history item
   const recent = stats?.history?.[0];
+  const riskLevel = stats?.riskLevel ?? 'N/A';
+  const healthScore = Math.round(healthyPct + (sandPct * 0.5)); // Simple heuristic
 
   return (
     <div className="layout" style={{ display: 'grid', gridTemplateColumns: '232px 1fr', minHeight: '100vh' }}>
@@ -66,11 +68,34 @@ export default function DashboardPage() {
           <p style={{ color: 'var(--text-dim)', fontSize: 14 }}>Here&apos;s your coral reef health overview</p>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 22 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 16px', fontSize: 13, color: 'var(--text-dim)', cursor: 'pointer' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 22, position: 'relative' }}>
+          <div 
+            onClick={() => {
+              const el = document.getElementById('time-filter-dropdown-dash');
+              el.style.display = el.style.display === 'none' ? 'block' : 'none';
+            }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 16px', fontSize: 13, color: 'var(--text-dim)', cursor: 'pointer', userSelect: 'none' }}
+          >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-            This Week
+            <span id="time-filter-label-dash">This Week</span>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          
+          <div id="time-filter-dropdown-dash" style={{ display: 'none', position: 'absolute', top: '100%', right: 0, marginTop: 8, background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, padding: 6, zIndex: 100, minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.2)' }}>
+            {['Today', 'This Week', 'This Month', 'This Year', 'All Time'].map((range) => (
+              <div 
+                key={range}
+                onClick={(e) => {
+                  document.getElementById('time-filter-label-dash').innerText = range;
+                  document.getElementById('time-filter-dropdown-dash').style.display = 'none';
+                }}
+                style={{ padding: '8px 12px', fontSize: 13, color: 'var(--text-dim)', cursor: 'pointer', borderRadius: 8 }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--text)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-dim)'; }}
+              >
+                {range}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -139,7 +164,7 @@ export default function DashboardPage() {
               </span>
               <span style={{ fontSize: 12.5, color: 'var(--text-dim)' }}>Risk Level</span>
             </div>
-            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--amber)', marginBottom: 10 }}>Moderate</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--amber)', marginBottom: 10 }}>{riskLevel}</div>
             <div style={{ display: 'flex', gap: 3 }}>
               <span style={{ height: 5, flex: 1, borderRadius: 3, background: 'var(--amber)' }}></span>
               <span style={{ height: 5, flex: 1, borderRadius: 3, background: 'var(--amber)' }}></span>
@@ -194,7 +219,7 @@ export default function DashboardPage() {
                 <div style={{ fontSize: 15, fontWeight: 700 }}>97.6%</div>
               </div>
             </div>
-            <button className="btn btn-outline" style={{ width: '100%', padding: 11 }}>View Full Result <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            <button onClick={() => navigate('/history')} className="btn btn-outline" style={{ width: '100%', padding: 11 }}>View Full Result <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
           </div>
 
           <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 22 }}>
@@ -223,7 +248,7 @@ export default function DashboardPage() {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12.5 }}><span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-dim)' }}><span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--amber)' }}></span>Sand / Rock</span><span style={{ fontWeight: 700, color: 'var(--text)' }}>{sandPct.toFixed(1)}%</span></div>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 18, padding: 11, border: '1px solid var(--card-border)', borderRadius: 10, color: 'var(--cyan)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            <div onClick={() => navigate('/history')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 18, padding: 11, border: '1px solid var(--card-border)', borderRadius: 10, color: 'var(--cyan)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 20V10M10 20V4M17 20v-7"/></svg>Detailed Analytics <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             </div>
           </div>
@@ -260,26 +285,20 @@ export default function DashboardPage() {
               <Link to="/history" style={{ fontSize: 12.5, color: 'var(--cyan)' }}>View All</Link>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <span style={{ width: 34, height: 34, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', background: 'rgba(94,224,145,0.14)', color: 'var(--green)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3"><path d="M20 6L9 17l-5-5"/></svg></span>
-                <div style={{ flex: 1 }}><div style={{ fontSize: 13, fontWeight: 600 }}>Analysis completed</div><div style={{ fontSize: 12, color: 'var(--text-faint)' }}>{recent?.fileName || 'GOPR1234_20250524_104512.jpg'}</div></div>
-                <div style={{ fontSize: 11, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>10:45 AM</div>
-              </div>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <span style={{ width: 34, height: 34, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', background: 'rgba(59,158,255,0.14)', color: '#5db8ff' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 16V7M12 7l-3.5 3.5M12 7l3.5 3.5"/><path d="M6.5 17.5A4.5 4.5 0 017 8.6 5.5 5.5 0 0117.9 8 4 4 0 0117.5 17.5H6.5z"/></svg></span>
-                <div style={{ flex: 1 }}><div style={{ fontSize: 13, fontWeight: 600 }}>New image uploaded</div><div style={{ fontSize: 12, color: 'var(--text-faint)' }}>DJI_20250524_094321.jpg</div></div>
-                <div style={{ fontSize: 11, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>09:43 AM</div>
-              </div>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <span style={{ width: 34, height: 34, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', background: 'rgba(255,183,77,0.14)', color: 'var(--amber)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 3v4a1 1 0 001 1h4"/><path d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z"/></svg></span>
-                <div style={{ flex: 1 }}><div style={{ fontSize: 13, fontWeight: 600 }}>Report generated</div><div style={{ fontSize: 12, color: 'var(--text-faint)' }}>Reef_Report_20250524.pdf</div></div>
-                <div style={{ fontSize: 11, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>09:20 AM</div>
-              </div>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <span style={{ width: 34, height: 34, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', background: 'rgba(255,107,107,0.14)', color: 'var(--red)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 9v4M12 17h.01M10.3 3.9L2.7 17a2 2 0 001.7 3h15.2a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></span>
-                <div style={{ flex: 1 }}><div style={{ fontSize: 13, fontWeight: 600 }}>Bleaching alert triggered</div><div style={{ fontSize: 12, color: 'var(--text-faint)' }}>Location: Great Barrier Reef</div></div>
-                <div style={{ fontSize: 11, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>Yesterday</div>
-              </div>
+              {stats?.history && stats.history.length > 0 ? stats.history.slice(0, 4).map((item, idx) => (
+                <div key={item.analysisId || idx} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                  <span style={{ width: 34, height: 34, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', background: item.riskLevel === 'Low' || item.riskLevel === 'Minimal' ? 'rgba(94,224,145,0.14)' : item.riskLevel === 'Moderate' ? 'rgba(255,183,77,0.14)' : 'rgba(255,107,107,0.14)', color: item.riskLevel === 'Low' || item.riskLevel === 'Minimal' ? 'var(--green)' : item.riskLevel === 'Moderate' ? 'var(--amber)' : 'var(--red)' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3"><path d="M20 6L9 17l-5-5"/></svg>
+                  </span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600 }}>Analysis completed</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-faint)' }}>{item.fileName}</div>
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>{new Date(item.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                </div>
+              )) : (
+                <div style={{ color: 'var(--text-muted)' }}>No recent activity.</div>
+              )}
             </div>
           </div>
         </div>
@@ -316,11 +335,11 @@ export default function DashboardPage() {
                 </linearGradient>
               </defs>
             </svg>
-            <div style={{ fontSize: 34, fontWeight: 800, marginTop: -58 }}>72<span style={{ fontSize: 14, color: 'var(--text-faint)', fontWeight: 600 }}>/100</span></div>
+            <div style={{ fontSize: 34, fontWeight: 800, marginTop: -58 }}>{healthScore}<span style={{ fontSize: 14, color: 'var(--text-faint)', fontWeight: 600 }}>/100</span></div>
             <div style={{ color: 'var(--amber)', fontWeight: 700, fontSize: 14, margin: '6px 0 10px', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>Moderate
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>{riskLevel} Risk
             </div>
-            <div style={{ fontSize: 12.5, color: 'var(--text-dim)', maxWidth: 230 }}>The reef is in moderate condition. Regular monitoring is recommended.</div>
+            <div style={{ fontSize: 12.5, color: 'var(--text-dim)', maxWidth: 230 }}>{healthScore > 80 ? 'The reef is in good condition.' : 'The reef is in moderate/poor condition. Regular monitoring is recommended.'}</div>
           </div>
 
           <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 22 }}>
@@ -330,11 +349,11 @@ export default function DashboardPage() {
                 <span style={{ width: 32, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(59,158,255,0.14)', color: '#5db8ff' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 16V7M12 7l-3.5 3.5M12 7l3.5 3.5"/><path d="M6.5 17.5A4.5 4.5 0 017 8.6 5.5 5.5 0 0117.9 8 4 4 0 0117.5 17.5H6.5z"/></svg></span>
                 <div><div style={{ fontSize: 13, fontWeight: 600 }}>New Analysis</div><div style={{ fontSize: 11, color: 'var(--text-faint)' }}>Upload image</div></div>
               </button>
-              <button style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer', color: 'var(--text)' }}>
+              <button onClick={() => navigate('/history')} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer', color: 'var(--text)' }}>
                 <span style={{ width: 32, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,107,107,0.14)', color: 'var(--red)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 3v4a1 1 0 001 1h4"/><path d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z"/></svg></span>
                 <div><div style={{ fontSize: 13, fontWeight: 600 }}>Generate Report</div><div style={{ fontSize: 11, color: 'var(--text-faint)' }}>Download PDF</div></div>
               </button>
-              <button style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer', color: 'var(--text)', gridColumn: '1 / -1', flexDirection: 'row', alignItems: 'center' }}>
+              <button onClick={() => navigate('/map')} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer', color: 'var(--text)', gridColumn: '1 / -1', flexDirection: 'row', alignItems: 'center' }}>
                 <span style={{ width: 32, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(155,140,255,0.14)', color: 'var(--purple)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 6-9 12-9 12S3 16 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
                 <div><div style={{ fontSize: 13, fontWeight: 600 }}>Reef Map</div><div style={{ fontSize: 11, color: 'var(--text-faint)' }}>View monitored locations</div></div>
               </button>

@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute';
+import { ProtectedRoute, PublicRoute, RootRedirect } from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
@@ -9,6 +9,7 @@ import LivePage from './pages/LivePage';
 import MapPage from './pages/MapPage';
 import HistoryPage from './pages/HistoryPage';
 import AdminPage from './pages/AdminPage';
+import SettingsPage from './pages/SettingsPage';
 import PublicReportPage from './pages/PublicReportPage';
 
 export default function App() {
@@ -24,9 +25,10 @@ export default function App() {
           <Route path="/live" element={<ProtectedRoute><LivePage /></ProtectedRoute>} />
           <Route path="/map" element={<ProtectedRoute><MapPage /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute adminOnly><AdminPage /></ProtectedRoute>} />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<RootRedirect />} />
+          <Route path="*" element={<RootRedirect />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

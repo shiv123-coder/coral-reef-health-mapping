@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import Navbar from '../components/Navbar';
+import Sidebar from '../components/Sidebar';
 import BackgroundOrbs, { GlassCard, RiskBadge, LoadingSpinner } from '../components/UI';
 import { getAnalysisHistory, getComparison, downloadPdf, downloadCsv } from '../services/api';
 import { Search, Download, TrendingUp, TrendingDown, Minus, Database, Key } from 'lucide-react';
@@ -26,31 +26,25 @@ export default function HistoryPage() {
     a.click();
   };
 
-  const exportCsv = async () => {
-    try {
-      const res = await downloadCsv(); // Assumes backend supports this, if not we create a client side blob
-      const url = window.URL.createObjectURL(new Blob([res.data || res]));
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `coral_telemetry_export_${new Date().toISOString().split('T')[0]}.csv`;
-      a.click();
-    } catch (e) {
-      // Fallback: client side CSV generation if API route is not yet fully linked
-      const header = "AnalysisID,FileName,HealthyPct,BleachedPct,DeadPct,AlgaePct,RiskLevel,Date\n";
-      const rows = history.map(h => `${h.analysisId},${h.fileName},${h.healthyCoralPct},${h.bleachedCoralPct},${h.deadCoralPct},${h.algaePct},${h.riskLevel},${new Date(h.createdAt).toISOString()}`).join("\n");
-      const blob = new Blob([header + rows], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `telemetry_export.csv`;
-      a.click();
-    }
+  const exportCsv = () => {
+    const header = "AnalysisID,FileName,HealthyPct,BleachedPct,DeadPct,AlgaePct,RiskLevel,Date\n";
+    const rows = history.map(h => `${h.analysisId || 'N/A'},${h.fileName || 'N/A'},${h.healthyCoralPct || 0}%,${h.bleachedCoralPct || 0}%,${h.deadCoralPct || 0}%,${h.algaePct || 0}%,${h.riskLevel || 'N/A'},${h.createdAt ? new Date(h.createdAt).toISOString() : 'N/A'}`).join("\n");
+    const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = `coral_telemetry_export_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   };
 
   const filteredHistory = useMemo(() => {
     return history.filter(h => 
-      h.fileName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      h.fileType.toLowerCase().includes(searchQuery.toLowerCase())
+      (h.fileName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (h.fileType || '').toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [history, searchQuery]);
 
@@ -64,10 +58,9 @@ export default function HistoryPage() {
   };
 
   return (
-    <>
-      <BackgroundOrbs />
-      <Navbar />
-      <div className="page-container" style={{ maxWidth: 1400 }}>
+    <div className="layout" style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+      <Sidebar />
+      <div className="main" style={{ padding: '30px 40px', flex: 1, maxWidth: 1400, margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24, borderBottom: '1px solid var(--border-color)', paddingBottom: 16 }}>
           <div>
             <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -188,6 +181,6 @@ export default function HistoryPage() {
           </>
         )}
       </div>
-    </>
+    </div>
   );
 }

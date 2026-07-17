@@ -17,6 +17,9 @@ export default function AdminPage() {
   const [editingUser, setEditingUser] = useState(null);
   const [editForm, setEditForm] = useState({ firstName: '', lastName: '', role: '' });
   
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  
   // Notification State
   const { createNotification, adminDeleteNotification, notifications } = useNotifications();
   const [notifForm, setNotifForm] = useState({ title: '', message: '', type: 'info' });
@@ -34,12 +37,16 @@ export default function AdminPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // For the charts and stats we can use dummy values similar to HTML or actual data if available
-  const healthyPct = 48.6;
-  const bleachedPct = 22.3;
-  const deadPct = 12.7;
-  const algaePct = 10.1;
+  // Calculate real stats from analyses
+  const n = analyses.length || 1;
+  const healthyPct = analyses.length ? Number((analyses.reduce((sum, a) => sum + (a.healthyCoralPct || 0), 0) / n).toFixed(1)) : 0;
+  const bleachedPct = analyses.length ? Number((analyses.reduce((sum, a) => sum + (a.bleachedCoralPct || 0), 0) / n).toFixed(1)) : 0;
+  const deadPct = analyses.length ? Number((analyses.reduce((sum, a) => sum + (a.deadCoralPct || 0), 0) / n).toFixed(1)) : 0;
+  const algaePct = analyses.length ? Number((analyses.reduce((sum, a) => sum + (a.algaePct || 0), 0) / n).toFixed(1)) : 0;
   const sandPct = Math.max(0, 100 - (healthyPct + bleachedPct + deadPct + algaePct));
+
+  const riskPriority = { Critical: 4, High: 3, Moderate: 2, Low: 1, Minimal: 0 };
+  const worstRisk = analyses.length ? analyses.reduce((worst, a) => (riskPriority[a.riskLevel] || 0) > (riskPriority[worst] || 0) ? (a.riskLevel || 'Minimal') : worst, 'Minimal') : 'N/A';
 
   const circ = 439.8;
   const healthyDash = (healthyPct / 100) * circ;
@@ -65,7 +72,14 @@ export default function AdminPage() {
   };
 
   // Recent users
-  const recentUsers = users.slice(0, 10);
+  const filteredUsers = useMemo(() => {
+    return users.filter(u => 
+      (u.firstName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (u.lastName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (u.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [users, searchQuery]);
+  const recentUsers = filteredUsers.slice(0, 10);
   
   const handleDeleteUser = async (uid) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
@@ -122,7 +136,13 @@ export default function AdminPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 16px', width: 230, color: 'var(--text-faint)' }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
-              <input type="text" placeholder="Search anything..." style={{ background: 'none', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 13.5, width: '100%' }} />
+              <input 
+                type="text" 
+                placeholder="Search users..." 
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ background: 'none', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 13.5, width: '100%' }} 
+              />
             </div>
             <NotificationDropdown />
             <div onClick={toggleTheme} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card)', border: '1px solid var(--card-border)', padding: '10px 16px', borderRadius: 11, fontSize: 13, color: 'var(--text-dim)', cursor: 'pointer' }}>
@@ -132,10 +152,34 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 16px', fontSize: 13, color: 'var(--text-dim)', cursor: 'pointer', marginBottom: 20, marginLeft: 'auto', width: 'fit-content' }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-          May 18 – May 24, 2025
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+        <div style={{ position: 'relative', marginBottom: 20, marginLeft: 'auto', width: 'fit-content' }}>
+          <div 
+            onClick={() => {
+              const el = document.getElementById('time-filter-dropdown-admin');
+              el.style.display = el.style.display === 'none' ? 'block' : 'none';
+            }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 16px', fontSize: 13, color: 'var(--text-dim)', cursor: 'pointer', userSelect: 'none' }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <span id="time-filter-label-admin">May 18 – May 24, 2025</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div id="time-filter-dropdown-admin" style={{ display: 'none', position: 'absolute', top: '100%', right: 0, marginTop: 8, background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, padding: 6, zIndex: 100, minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.2)' }}>
+            {['Today', 'This Week', 'This Month', 'This Year', 'All Time'].map((range) => (
+              <div 
+                key={range}
+                onClick={(e) => {
+                  document.getElementById('time-filter-label-admin').innerText = range === 'This Week' ? 'May 18 – May 24, 2025' : range;
+                  document.getElementById('time-filter-dropdown-admin').style.display = 'none';
+                }}
+                style={{ padding: '8px 12px', fontSize: 13, color: 'var(--text-dim)', cursor: 'pointer', borderRadius: 8 }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--text)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-dim)'; }}
+              >
+                {range}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* STAT CARDS */}
@@ -147,7 +191,7 @@ export default function AdminPage() {
               </span>
               <span style={{ fontSize: 12.5, color: 'var(--text-dim)' }}>Total Analyses</span>
             </div>
-            <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>{loading ? '--' : (analytics?.totalAnalyses || '1,248')}</div>
+            <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>{loading ? '--' : (analytics?.totalAnalyses || analyses.length || 0)}</div>
             <div style={{ fontSize: 11.5, display: 'flex', alignItems: 'center', gap: 4, color: 'var(--green)' }}>
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M6 15l6-6 6 6"/></svg>18.6%<span style={{ color: 'var(--text-faint)', marginLeft: 2 }}>vs last week</span>
             </div>
@@ -199,7 +243,7 @@ export default function AdminPage() {
               </span>
               <span style={{ fontSize: 12.5, color: 'var(--text-dim)' }}>Risk Level</span>
             </div>
-            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--amber)', marginBottom: 10 }}>Moderate</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--amber)', marginBottom: 10 }}>{worstRisk}</div>
             <div style={{ display: 'flex', gap: 3 }}>
               <span style={{ height: 5, flex: 1, borderRadius: 3, background: 'var(--amber)' }}></span>
               <span style={{ height: 5, flex: 1, borderRadius: 3, background: 'var(--amber)' }}></span>
@@ -270,7 +314,7 @@ export default function AdminPage() {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12.5 }}><span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-dim)' }}><span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--amber)' }}></span>Sand / Rock</span><span style={{ fontWeight: 700, color: 'var(--text)' }}>{sandPct.toFixed(1)}%</span></div>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 18, padding: 11, border: '1px solid var(--card-border)', borderRadius: 10, color: 'var(--cyan)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            <div onClick={() => navigate('/history')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 18, padding: 11, border: '1px solid var(--card-border)', borderRadius: 10, color: 'var(--cyan)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               View Detailed Analytics <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             </div>
           </div>
@@ -281,23 +325,23 @@ export default function AdminPage() {
           <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 22 }}>
             <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Quick Actions</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 12 }}>
-              <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 8, cursor: 'pointer' }}>
+              <div onClick={() => navigate('/upload')} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 8, cursor: 'pointer' }}>
                 <span style={{ width: 32, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(59,158,255,0.14)', color: '#5db8ff' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 16V7M12 7l-3.5 3.5M12 7l3.5 3.5"/><path d="M6.5 17.5A4.5 4.5 0 017 8.6 5.5 5.5 0 0117.9 8 4 4 0 0117.5 17.5H6.5z"/></svg></span>
                 <div><div style={{ fontSize: 12, fontWeight: 600 }}>New Analysis</div><div style={{ fontSize: 10.5, color: 'var(--text-faint)' }}>Upload Image</div></div>
               </div>
-              <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 8, cursor: 'pointer' }}>
+              <div onClick={() => navigate('/history')} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 8, cursor: 'pointer' }}>
                 <span style={{ width: 32, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,107,107,0.14)', color: 'var(--red)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 3v4a1 1 0 001 1h4"/><path d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z"/></svg></span>
                 <div><div style={{ fontSize: 12, fontWeight: 600 }}>Gen Report</div><div style={{ fontSize: 10.5, color: 'var(--text-faint)' }}>Download PDF</div></div>
               </div>
-              <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 8, cursor: 'pointer' }}>
+              <div onClick={() => navigate('/history')} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 8, cursor: 'pointer' }}>
                 <span style={{ width: 32, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(94,224,145,0.14)', color: 'var(--green)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg></span>
                 <div><div style={{ fontSize: 12, fontWeight: 600 }}>Export Data</div><div style={{ fontSize: 10.5, color: 'var(--text-faint)' }}>CSV / Excel</div></div>
               </div>
-              <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 8, cursor: 'pointer' }}>
+              <div onClick={() => window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 8, cursor: 'pointer' }}>
                 <span style={{ width: 32, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(59,158,255,0.14)', color: '#5db8ff' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/><path d="M16 4.5c1.7.4 3 2 3 3.9 0 1.9-1.3 3.5-3 3.9"/></svg></span>
                 <div><div style={{ fontSize: 12, fontWeight: 600 }}>Manage Users</div><div style={{ fontSize: 10.5, color: 'var(--text-faint)' }}>View All Users</div></div>
               </div>
-              <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 8, cursor: 'pointer' }}>
+              <div onClick={() => navigate('/map')} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 8, cursor: 'pointer' }}>
                 <span style={{ width: 32, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(155,140,255,0.14)', color: 'var(--purple)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 6-9 12-9 12S3 16 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
                 <div><div style={{ fontSize: 12, fontWeight: 600 }}>View Map</div><div style={{ fontSize: 10.5, color: 'var(--text-faint)' }}>Reef Locations</div></div>
               </div>

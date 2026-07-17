@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { Camera, CameraOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
+import Sidebar from '../components/Sidebar';
 import { StatCard, RiskBadge, LoadingSpinner } from '../components/UI';
 import api from '../services/api';
 
@@ -63,9 +63,9 @@ export default function LivePage() {
   }, []);
 
   return (
-    <>
-      <Navbar />
-      <div className="page-container" style={{ maxWidth: 1200 }}>
+    <div className="layout" style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+      <Sidebar />
+      <div className="main" style={{ padding: '30px 40px', flex: 1, maxWidth: 1200, margin: '0 auto' }}>
         
         {/* Header Section */}
         <div style={{ marginBottom: 40 }}>
@@ -178,6 +178,6 @@ export default function LivePage() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

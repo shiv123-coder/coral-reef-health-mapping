@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNotifications } from '../hooks/useNotifications';
+import { useAuth } from '../context/AuthContext';
 
 export default function NotificationDropdown() {
+  const { user } = useAuth();
   const { notifications, unreadCount, markAsRead, deleteNotification } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -71,7 +73,7 @@ export default function NotificationDropdown() {
               </div>
             ) : (
               notifications.map(notif => {
-                const isUnread = notif.userId === 'global' ? !notif.readBy?.includes(notif.id) : !notif.isRead;
+                const isUnread = notif.userId === 'global' ? !notif.readBy?.includes(user?.uid) : !notif.isRead;
                 return (
                   <div 
                     key={notif.id} 

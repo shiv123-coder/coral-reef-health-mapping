@@ -1,11 +1,18 @@
 import { useEffect, useState, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, CircleMarker, LayersControl } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, CircleMarker, LayersControl, Circle, Rectangle } from 'react-leaflet';
 import { Layers, Map as MapIcon, Filter, AlertTriangle, Droplet } from 'lucide-react';
-import Navbar from '../components/Navbar';
+import Sidebar from '../components/Sidebar';
 import BackgroundOrbs, { GlassCard, RiskBadge, LoadingSpinner } from '../components/UI';
 import { getAnalysisHistory } from '../services/api';
 
 const DEFAULT_CENTER = [18.5204, 73.8567];
+
+// Hardcoded marine protected areas for demonstration
+const PROTECTED_AREAS = [
+  { name: 'Great Barrier Reef Marine Park', bounds: [[-22.5, 149.5], [-16.5, 145.5]], color: '#22c55e' },
+  { name: 'Andaman Marine Sanctuary', bounds: [[12.5, 92.5], [11.5, 93.5]], color: '#14b8a6' },
+  { name: 'Lakshadweep Coral Reserve', bounds: [[10.5, 72.0], [9.5, 73.5]], color: '#22c55e' }
+];
 
 function riskColor(level) {
   const map = { Critical: '#ef4444', High: '#f97316', Moderate: '#f59e0b', Low: '#14b8a6', Minimal: '#22c55e' };
@@ -16,6 +23,10 @@ export default function MapPage() {
   const [analyses, setAnalyses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
+  
+  // Layer Intelligence States
+  const [showHotspots, setShowHotspots] = useState(false);
+  const [showProtectedAreas, setShowProtectedAreas] = useState(false);
 
   useEffect(() => {
     getAnalysisHistory()
@@ -32,13 +43,17 @@ export default function MapPage() {
     return base;
   }, [analyses, activeFilter]);
 
+  // Derive bleaching hotspots (where bleached coral > 30%)
+  const hotspots = useMemo(() => {
+    return analyses.filter((a) => a.latitude && a.longitude && a.bleachedCoralPct > 30);
+  }, [analyses]);
+
   const riskLevels = ['All', 'Critical', 'High', 'Moderate', 'Low', 'Minimal'];
 
   return (
-    <>
-      <BackgroundOrbs />
-      <Navbar />
-      <div className="page-container" style={{ maxWidth: 1600, padding: '24px' }}>
+    <div className="layout" style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+      <Sidebar />
+      <div className="main" style={{ padding: '30px 40px', flex: 1, maxWidth: 1600, margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24, borderBottom: '1px solid var(--border-color)', paddingBottom: 16 }}>
           <div>
             <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -90,18 +105,31 @@ export default function MapPage() {
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                   <p style={{ marginBottom: 12 }}>Displaying <strong>{mapped.length}</strong> active telemetry points matching current spatial filters.</p>
                   
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16, padding: '12px', background: 'var(--bg-hover)', borderRadius: 8 }}>
+                  <div 
+                    onClick={() => setShowHotspots(!showHotspots)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16, padding: '12px', background: showHotspots ? 'rgba(249, 115, 22, 0.15)' : 'var(--bg-hover)', border: `1px solid ${showHotspots ? 'var(--warning)' : 'transparent'}`, borderRadius: 8, cursor: 'pointer', transition: 'all 0.2s' }}
+                  >
                     <AlertTriangle size={24} color="var(--warning)" />
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Bleaching Hotspots</div>
                       <div style={{ fontSize: '0.75rem' }}>Auto-detected via AI consensus</div>
                     </div>
+                    <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${showHotspots ? 'var(--warning)' : 'var(--text-muted)'}`, background: showHotspots ? 'var(--warning)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {showHotspots && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>}
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8, padding: '12px', background: 'var(--bg-hover)', borderRadius: 8 }}>
+                  
+                  <div 
+                    onClick={() => setShowProtectedAreas(!showProtectedAreas)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8, padding: '12px', background: showProtectedAreas ? 'rgba(34, 197, 94, 0.15)' : 'var(--bg-hover)', border: `1px solid ${showProtectedAreas ? 'var(--success)' : 'transparent'}`, borderRadius: 8, cursor: 'pointer', transition: 'all 0.2s' }}
+                  >
                     <Droplet size={24} color="var(--success)" />
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Marine Protected Areas</div>
                       <div style={{ fontSize: '0.75rem' }}>Sanctuary zones mapped</div>
+                    </div>
+                    <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${showProtectedAreas ? 'var(--success)' : 'var(--text-muted)'}`, background: showProtectedAreas ? 'var(--success)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {showProtectedAreas && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>}
                     </div>
                   </div>
                 </div>
@@ -130,6 +158,31 @@ export default function MapPage() {
                   </LayersControl.BaseLayer>
                 </LayersControl>
 
+                {/* Hotspots Layer */}
+                {showHotspots && hotspots.map((h, idx) => (
+                  <Circle 
+                    key={`hotspot-${idx}`}
+                    center={[h.latitude, h.longitude]} 
+                    radius={15000} // 15km radius
+                    pathOptions={{ color: 'var(--warning)', fillColor: 'var(--warning)', fillOpacity: 0.2, weight: 1 }}
+                  />
+                ))}
+
+                {/* Protected Areas Layer */}
+                {showProtectedAreas && PROTECTED_AREAS.map((pa, idx) => (
+                  <Rectangle 
+                    key={`pa-${idx}`}
+                    bounds={pa.bounds} 
+                    pathOptions={{ color: pa.color, fillColor: pa.color, fillOpacity: 0.15, weight: 2, dashArray: '5, 5' }}
+                  >
+                    <Popup>
+                      <strong style={{ color: 'var(--success)' }}>{pa.name}</strong>
+                      <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Restricted human activity zone.</div>
+                    </Popup>
+                  </Rectangle>
+                ))}
+
+                {/* Data Points Layer */}
                 {mapped.map((a) => (
                   <CircleMarker
                     key={a.analysisId}
@@ -168,6 +221,6 @@ export default function MapPage() {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
