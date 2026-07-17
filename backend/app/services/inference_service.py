@@ -14,6 +14,12 @@ sys.path.insert(0, str(ROOT / "ml"))
 from inference import run_full_inference  # noqa: E402
 
 
+import os
+import random
+import time
+
+MOCK_INFERENCE = os.getenv("MOCK_INFERENCE", "true").lower() == "true"
+
 class InferenceService:
     def __init__(self):
         settings = get_settings()
@@ -22,6 +28,43 @@ class InferenceService:
 
     def analyze_image(self, image_path: str) -> Dict[str, Any]:
         """Run full ML pipeline on a single image."""
+        if MOCK_INFERENCE:
+            time.sleep(1.5)  # Simulate processing delay
+            # Generate realistic dummy metrics based on random
+            healthy = random.uniform(40, 90)
+            bleached = random.uniform(5, 30)
+            dead = random.uniform(0, 15)
+            algae = random.uniform(0, 10)
+            sand = random.uniform(0, 5)
+            total = healthy + bleached + dead + algae + sand
+            
+            # Normalize to 100%
+            factor = 100 / total
+            healthy, bleached, dead, algae, sand = [round(x * factor, 2) for x in (healthy, bleached, dead, algae, sand)]
+            
+            risk_level = "Low"
+            if bleached + dead > 30:
+                risk_level = "High"
+            elif bleached + dead > 15:
+                risk_level = "Moderate"
+
+            return {
+                "healthy_coral_pct": healthy,
+                "bleached_coral_pct": bleached,
+                "dead_coral_pct": dead,
+                "algae_pct": algae,
+                "sand_pct": sand,
+                "rock_pct": 0,
+                "bleaching_percentage": bleached,
+                "risk_level": risk_level,
+                "detections": [{"class": "healthy_coral", "confidence": 0.92, "bbox": [10, 10, 100, 100]}],
+                "classification": {"predicted_class": "healthy_coral", "confidence": 0.95},
+                "diseases": [],
+                "percentages": {},
+                "annotated_image": image_path, # Provide a dummy annotated image path
+                "processed_image": image_path
+            }
+
         result = run_full_inference(image_path, output_dir=str(self.output_dir))
         return result
 
