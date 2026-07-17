@@ -45,6 +45,13 @@ export default function PublicReportPage() {
 
             <GlassCard style={{ marginTop: 24, textAlign: 'center' }}>
               <RiskBadge level={data.riskLevel} />
+              {data.pdfUrl && (
+                <div style={{ marginTop: 24 }}>
+                  <a href={data.pdfUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ textDecoration: 'none', display: 'inline-block' }}>
+                    Download Official PDF Report
+                  </a>
+                </div>
+              )}
             </GlassCard>
           </>
         )}

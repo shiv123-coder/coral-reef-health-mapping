@@ -16,7 +16,7 @@ import cloudinary.uploader
 from PIL import Image
 from io import BytesIO
 
-from app.main import limiter
+from app.core.limiter import limiter
 
 router = APIRouter(prefix="/inference", tags=["Inference"])
 
@@ -129,10 +129,41 @@ async def upload_and_analyze(
         "createdAt": utc_now_iso(),
     }
 
-    save_analysis(analysis_id, analysis_record)
-
-    # Create initial report
+    # AUTOMATED PDF GENERATION & PUBLIC HOSTING
+    from app.services.report_generator import generate_pdf_report
+    import os
+    
     report_id = str(uuid.uuid4())
+    report_dir = upload_dir.parent / "reports"
+    report_dir.mkdir(parents=True, exist_ok=True)
+    pdf_path = report_dir / f"report_{report_id}.pdf"
+    
+    # Generate the PDF locally first
+    generate_pdf_report(
+        report_data=analysis_record,
+        output_path=str(pdf_path),
+        qr_token=qr_token,
+        annotated_image_path=result.get("annotated_image")
+    )
+    
+    pdf_url = None
+    if settings.cloudinary_cloud_name:
+        try:
+            upload_resp = cloudinary.uploader.upload(
+                str(pdf_path),
+                resource_type="raw",
+                folder="coral_reports",
+                public_id=f"report_{report_id}"
+            )
+            pdf_url = upload_resp.get("secure_url")
+            analysis_record["pdfUrl"] = pdf_url
+        except Exception as e:
+            print(f"Cloudinary PDF Upload failed: {e}")
+
+    # Save to Firebase
+    save_analysis(analysis_id, analysis_record)
+    
+    # Create initial report
     report_record = {
         **analysis_record,
         "reportId": report_id,
