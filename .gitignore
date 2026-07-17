@@ -23,10 +23,13 @@ frontend/dist/
 firebase-service-account.json
 *-firebase-adminsdk-*.json
 
-# IDE
+# IDE & Agents
 .idea/
 .vscode/
 *.swp
+.claude/
+.agents/
+skills-lock.json
 
 # OS
 .DS_Store
