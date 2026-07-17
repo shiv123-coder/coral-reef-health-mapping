@@ -74,6 +74,16 @@ def get_user_profile(uid: str) -> Optional[dict]:
     return doc.to_dict() if doc.exists else None
 
 
+def get_user_profile_by_email(email: str) -> Optional[dict]:
+    db = get_db()
+    if db is None:
+        return None
+    docs = db.collection("users").where("email", "==", email).limit(1).stream()
+    for doc in docs:
+        return doc.to_dict()
+    return None
+
+
 def update_user_profile(uid: str, data: dict) -> dict:
     db = get_db()
     if db is None:

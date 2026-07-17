@@ -110,10 +110,21 @@ export default function SignupPage() {
         department: form.department,
         country: form.country,
       });
-      navigate('/dashboard');
+      const { getMe } = await import('../services/api');
+      const profile = await getMe();
+      if (profile?.role === 'admin') navigate('/admin');
+      else navigate('/dashboard');
     } catch (err) {
       if (err.response?.status === 409) {
-        navigate('/dashboard');
+        // User already exists, fetch their profile and redirect appropriately
+        try {
+          const { getMe } = await import('../services/api');
+          const profile = await getMe();
+          if (profile?.role === 'admin') navigate('/admin');
+          else navigate('/dashboard');
+        } catch(e) {
+          navigate('/dashboard');
+        }
       } else {
         setError(err.response?.data?.detail || err.message);
       }
@@ -142,7 +153,10 @@ export default function SignupPage() {
         department: form.department,
         country: form.country,
       });
-      navigate('/dashboard');
+      const { getMe } = await import('../services/api');
+      const profile = await getMe();
+      if (profile?.role === 'admin') navigate('/admin');
+      else navigate('/dashboard');
     } catch (err) {
       if (err.code === 'auth/email-already-in-use') {
         setError('This email is already registered. Please sign in.');

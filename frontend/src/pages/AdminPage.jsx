@@ -114,7 +114,9 @@ export default function AdminPage() {
       <main className="main" style={{ padding: '26px 30px 40px', overflowX: 'hidden' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22, gap: 20, flexWrap: 'wrap' }}>
           <div>
-            <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Welcome back, Admin! 👋</h2>
+            <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>
+              {new Date().getHours() < 12 ? 'Good Morning' : new Date().getHours() < 18 ? 'Good Afternoon' : 'Good Evening'}, Admin! 👋
+            </h2>
             <p style={{ color: 'var(--text-dim)', fontSize: 13.5 }}>Here&apos;s what&apos;s happening with your coral reef monitoring system.</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -208,7 +210,7 @@ export default function AdminPage() {
         </div>
 
         {/* TREND + DONUT */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 16, marginBottom: 16 }}>
           <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 22 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h3 style={{ fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>Coral Health Trend <svg style={{ color: 'var(--text-faint)', cursor: 'help' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="16" x2="12" y2="11"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></h3>
@@ -275,7 +277,7 @@ export default function AdminPage() {
         </div>
 
         {/* QUICK ACTIONS + RECENT ANALYSES */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 16, marginBottom: 16 }}>
           <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 22 }}>
             <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Quick Actions</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 12 }}>
@@ -331,7 +333,7 @@ export default function AdminPage() {
         </div>
 
         {/* MAP + SYSTEM OVERVIEW */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 16, marginBottom: 16 }}>
           <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 22 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h3 style={{ fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>Reef Monitoring Map <svg style={{ color: 'var(--text-faint)', cursor: 'help' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="16" x2="12" y2="11"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></h3>
@@ -384,7 +386,7 @@ export default function AdminPage() {
         </div>
 
         {/* RECENT USERS + ALERTS */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16, marginBottom: 26 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 16, marginBottom: 26 }}>
           <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 22, overflowX: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h3 style={{ fontSize: 16, fontWeight: 700 }}>Recent Users</h3>

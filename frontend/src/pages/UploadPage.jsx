@@ -145,7 +145,7 @@ export default function UploadPage() {
           <p style={{ color: 'var(--text-dim)', fontSize: 14 }}>Upload a coral image to run deep learning analysis.</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: 24, alignItems: 'start' }}>
           
           <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 26 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 17, fontWeight: 700, marginBottom: 20 }}>
@@ -225,7 +225,7 @@ export default function UploadPage() {
                   <div style={{ color: 'var(--text-dim)', fontSize: 13.5 }}>{desc}</div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: 14, marginBottom: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, marginBottom: 16 }}>
                   <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: 18 }}>
                     <h4 style={{ fontSize: 13, color: 'var(--text-dim)', fontWeight: 600, marginBottom: 14 }}>Confidence Score</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>

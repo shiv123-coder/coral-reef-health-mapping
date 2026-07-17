@@ -58,7 +58,13 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/dashboard');
+      const { getMe } = await import('../services/api');
+      const profile = await getMe();
+      if (profile?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
         try {
@@ -87,7 +93,13 @@ export default function LoginPage() {
     setError('');
     try {
       await signInWithPopup(auth, googleProvider);
-      navigate('/dashboard');
+      const { getMe } = await import('../services/api');
+      const profile = await getMe();
+      if (profile?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       setError(err.message);
     }

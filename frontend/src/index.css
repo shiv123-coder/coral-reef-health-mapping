@@ -188,3 +188,16 @@ img {
   margin-bottom: 16px;
   font-size: 0.9rem;
 }
+
+/* Global Responsive Adjustments for Layout Grid */
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr !important;
+  }
+  .layout > nav, .layout > aside {
+    display: none !important; /* Hide sidebar on small screens for now to prevent squishing */
+  }
+  .main {
+    padding: 16px 20px 30px !important;
+  }
+}

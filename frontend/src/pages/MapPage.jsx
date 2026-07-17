@@ -52,7 +52,7 @@ export default function MapPage() {
         {loading ? (
           <LoadingSpinner text="Loading spatial data..." />
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 24, height: '70vh', minHeight: 600 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24, height: '70vh', minHeight: 600 }}>
             {/* GIS Control Panel */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <GlassCard style={{ padding: '20px' }}>
@@ -145,7 +145,7 @@ export default function MapPage() {
                     <Popup className="gis-popup">
                       <div style={{ padding: 4 }}>
                         <strong style={{ fontSize: '1rem', display: 'block', marginBottom: 8 }}>{a.fileName}</strong>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8, marginBottom: 12 }}>
                           <div>
                             <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase' }}>Healthy</div>
                             <div style={{ color: '#22c55e', fontWeight: 700 }}>{a.healthyCoralPct}%</div>

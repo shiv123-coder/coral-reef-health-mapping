@@ -6,13 +6,18 @@ export default function Sidebar() {
   const location = useLocation();
 
   return (
-    <aside className="sidebar">
-      <div className="sb-logo">
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 2C9 2 7 5 7 8c0 2 1 3 1 5 0 3-2 4-2 7 0 1 1 2 2 2s2-1 2-2c0-2 1-3 2-3s2 1 2 3c0 1 1 2 2 2s2-1 2-2c0-3-2-4-2-7 0-2 1-3 1-5 0-3-2-6-5-6z" fill="url(#sg)"/><defs><linearGradient id="sg" x1="7" y1="2" x2="17" y2="22"><stop stopColor="#4fd6e8"/><stop offset="1" stopColor="#3b7dff"/></linearGradient></defs></svg>
+    <aside className="sidebar" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '24px 20px', background: 'var(--bg)', borderRight: '1px solid var(--card-border)', position: 'relative', overflow: 'hidden' }}>
+      <style>{`
+        .nav a { display: flex; alignItems: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--text-dim); font-size: 14.5px; font-weight: 500; transition: background .2s, color .2s; text-decoration: none; align-items: center; }
+        .nav a:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+        .nav a.active { background: linear-gradient(90deg, rgba(59,158,255,0.15), rgba(79,214,232,0.05)); color: var(--cyan); border: 1px solid rgba(79,214,232,0.2); }
+      `}</style>
+      <div className="sb-logo" style={{ marginBottom: 40, paddingLeft: 10 }}>
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 12 }}><path d="M12 2C9 2 7 5 7 8c0 2 1 3 1 5 0 3-2 4-2 7 0 1 1 2 2 2s2-1 2-2c0-2 1-3 2-3s2 1 2 3c0 1 1 2 2 2s2-1 2-2c0-3-2-4-2-7 0-2 1-3 1-5 0-3-2-6-5-6z" fill="url(#sg)"/><defs><linearGradient id="sg" x1="7" y1="2" x2="17" y2="22"><stop stopColor="#4fd6e8"/><stop offset="1" stopColor="#3b7dff"/></linearGradient></defs></svg>
         <div><h1 style={{ fontSize: 18, fontWeight: 800 }}>Coral<span style={{ background: 'linear-gradient(90deg,#7dd8ff,#4fd6e8)', WebkitBackgroundClip: 'text', color: 'transparent' }}>AI</span></h1><div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>Coral Reef Health Analyzer</div></div>
       </div>
 
-      <nav className="nav">
+      <nav className="nav" style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
         <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
           Dashboard
@@ -36,13 +41,6 @@ export default function Sidebar() {
           </Link>
         )}
       </nav>
-
-      <div style={{ background: 'linear-gradient(160deg, rgba(255,183,77,0.1), rgba(255,183,77,0.02))', border: '1px solid rgba(255,183,77,0.25)', borderRadius: 14, padding: 16, margin: '18px 4px 14px' }}>
-        <div style={{ fontSize: 18, marginBottom: 6 }}>👑</div>
-        <h4 style={{ fontSize: 13.5, color: 'var(--amber)', marginBottom: 4 }}>Premium Plan</h4>
-        <p style={{ fontSize: 11.5, color: 'var(--text-dim)', marginBottom: 2 }}>You are using Premium</p>
-        <button style={{ width: '100%', padding: 9, marginTop: 12, border: 'none', borderRadius: 9, cursor: 'pointer', background: 'linear-gradient(90deg,#3b7dff,#4fd6e8)', color: '#04101f', fontWeight: 700, fontSize: 12.5 }}>Upgrade Plan</button>
-      </div>
 
       <div className="user-card" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.02)', margin: '0 4px', cursor: 'pointer' }}>
         <div style={{ width: 36, height: 36, borderRadius: '50%', flex: 'none', background: 'linear-gradient(135deg, #3b7dff, #4fd6e8)' }}></div>

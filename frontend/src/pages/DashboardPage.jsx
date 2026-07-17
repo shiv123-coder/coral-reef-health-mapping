@@ -60,7 +60,9 @@ export default function DashboardPage() {
         </div>
 
         <div style={{ marginBottom: 22 }}>
-          <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Welcome back, {user?.displayName ? user.displayName.split(' ')[0] : 'User'}! 👋</h2>
+          <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>
+            {new Date().getHours() < 12 ? 'Good Morning' : new Date().getHours() < 18 ? 'Good Afternoon' : 'Good Evening'}, {user?.email === 'shivashankrmali7@gmail.com' || user?.email?.includes('admin') ? 'Admin' : 'User'}! 👋
+          </h2>
           <p style={{ color: 'var(--text-dim)', fontSize: 14 }}>Here&apos;s your coral reef health overview</p>
         </div>
 
@@ -148,7 +150,7 @@ export default function DashboardPage() {
         </div>
 
         {/* TWO COL: Recent Analysis + Donut */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.15fr 1fr', gap: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 16, marginBottom: 16 }}>
           <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 22 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h3 style={{ fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>Recent Analysis</h3>
@@ -228,7 +230,7 @@ export default function DashboardPage() {
         </div>
 
         {/* MAP + ACTIVITY */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 16, marginBottom: 16 }}>
           <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 22 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h3 style={{ fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>Reef Monitoring Map <svg style={{ color: 'var(--text-faint)', cursor: 'help' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="16" x2="12" y2="11"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></h3>
@@ -283,7 +285,7 @@ export default function DashboardPage() {
         </div>
 
         {/* BOTTOM SECTION */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16, marginBottom: 16 }}>
           <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 22 }}>
             <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Coral Health Trend</h3>
             <svg width="100%" height="190" viewBox="0 0 420 190" preserveAspectRatio="none">
