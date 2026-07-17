@@ -1,11 +1,50 @@
 import { motion } from 'framer-motion';
 
+import { useState, useEffect } from 'react';
+
 export default function BackgroundOrbs() {
+  const [ripples, setRipples] = useState([]);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      // Create a unique ripple object
+      const newRipple = { id: Date.now(), x: e.clientX, y: e.clientY };
+      setRipples((prev) => [...prev, newRipple]);
+      
+      // Clean it up after animation completes
+      setTimeout(() => {
+        setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
+      }, 1000);
+    };
+
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
+  }, []);
+
   return (
-    <div className="bg-orbs">
+    <div className="bg-orbs" style={{ pointerEvents: 'none', zIndex: 0 }}>
       <div className="orb orb-1" />
       <div className="orb orb-2" />
       <div className="orb orb-3" />
+      
+      {ripples.map((r) => (
+        <motion.div
+          key={r.id}
+          initial={{ opacity: 0.5, scale: 0 }}
+          animate={{ opacity: 0, scale: 4 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          style={{
+            position: 'fixed',
+            left: r.x - 20, // Center the 40px circle
+            top: r.y - 20,
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            backgroundColor: 'var(--primary-500)',
+            pointerEvents: 'none'
+          }}
+        />
+      ))}
     </div>
   );
 }
