@@ -1,0 +1,40 @@
+# Environment
+.env
+.env.production
+.env.production.example
+.env.local
+*.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+ml/data/
+ml/weights/
+uploads/
+reports/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Firebase
+firebase-service-account.json
+*-firebase-adminsdk-*.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+*.zip
+
+# Logs
+*.log

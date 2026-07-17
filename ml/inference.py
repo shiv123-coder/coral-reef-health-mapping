@@ -1,0 +1,308 @@
+"""
+inference.py — Unified inference pipeline for production use.
+
+Combines YOLO detection + DeepLabV3+ segmentation + EfficientNet classification
+to produce health percentages, risk level, and annotated output image.
+"""
+
+import os
+import json
+from pathlib import Path
+from typing import Dict, Any, Optional, Tuple
+
+import cv2
+import numpy as np
+import torch
+import torch.nn as nn
+from PIL import Image
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).parent.parent / ".env.production")
+
+BASE_DIR = Path(__file__).parent
+WEIGHTS_DIR = BASE_DIR / "weights"
+DEVICE = torch.device(os.getenv("INFERENCE_DEVICE", "cuda" if torch.cuda.is_available() else "cpu"))
+CONF_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.5"))
+
+CLASSES = ["healthy_coral", "bleached_coral", "dead_coral", "algae", "sand", "rock"]
+CLASS_COLORS = {
+    "healthy_coral": (0, 200, 100),
+    "bleached_coral": (255, 255, 200),
+    "dead_coral": (128, 128, 128),
+    "algae": (0, 180, 0),
+    "sand": (210, 180, 140),
+    "rock": (100, 100, 100),
+}
+
+# Lazy-loaded models
+_yolo_model = None
+_seg_model = None
+_cls_model = None
+_cls_names = None
+
+
+def _load_yolo():
+    global _yolo_model
+    if _yolo_model is None:
+        from ultralytics import YOLO
+        path = WEIGHTS_DIR / "yolo_best.pt"
+        _yolo_model = YOLO(str(path) if path.exists() else "yolo11n.pt")
+    return _yolo_model
+
+
+def _load_segmentation():
+    global _seg_model
+    if _seg_model is None:
+        from torchvision.models.segmentation import deeplabv3_resnet50
+        path = WEIGHTS_DIR / "deeplabv3_best.pth"
+        num_classes = len(CLASSES) + 1
+        _seg_model = deeplabv3_resnet50(weights=None, num_classes=num_classes)
+        if path.exists():
+            _seg_model.load_state_dict(torch.load(path, map_location=DEVICE, weights_only=True))
+        _seg_model = _seg_model.to(DEVICE).eval()
+    return _seg_model
+
+
+def _load_classifier():
+    global _cls_model, _cls_names
+    if _cls_model is None:
+        from torchvision import models, transforms
+        path = WEIGHTS_DIR / "efficientnet_best.pth"
+        if path.exists():
+            ckpt = torch.load(path, map_location=DEVICE, weights_only=False)
+            _cls_names = ckpt.get("class_names", CLASSES)
+            _cls_model = models.efficientnet_b0(weights=None)
+            _cls_model.classifier[1] = nn.Linear(_cls_model.classifier[1].in_features, ckpt["num_classes"])
+            _cls_model.load_state_dict(ckpt["model_state_dict"])
+        else:
+            _cls_names = CLASSES
+            _cls_model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
+            _cls_model.classifier[1] = nn.Linear(_cls_model.classifier[1].in_features, len(CLASSES))
+        _cls_model = _cls_model.to(DEVICE).eval()
+    return _cls_model, _cls_names
+
+
+def preprocess_image(image: np.ndarray) -> np.ndarray:
+    """Underwater image preprocessing: denoise, color correction, contrast."""
+    # Bilateral denoise
+    denoised = cv2.bilateralFilter(image, 9, 75, 75)
+
+    # Red channel compensation (underwater blue-green cast)
+    b, g, r = cv2.split(denoised.astype(np.float32))
+    r = np.clip(r * 1.3, 0, 255)
+    g = np.clip(g * 1.1, 0, 255)
+    corrected = cv2.merge([b, g, r]).astype(np.uint8)
+
+    # CLAHE contrast enhancement on L channel
+    lab = cv2.cvtColor(corrected, cv2.COLOR_BGR2LAB)
+    l, a, b_ch = cv2.split(lab)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    l = clahe.apply(l)
+    enhanced = cv2.cvtColor(cv2.merge([l, a, b_ch]), cv2.COLOR_LAB2BGR)
+
+    return enhanced
+
+
+def run_detection(image: np.ndarray) -> list:
+    """YOLO object detection."""
+    model = _load_yolo()
+    results = model(image, conf=CONF_THRESHOLD, verbose=False)
+    detections = []
+    for r in results:
+        for box in r.boxes:
+            cls_id = int(box.cls[0])
+            conf = float(box.conf[0])
+            xyxy = box.xyxy[0].cpu().numpy().tolist()
+            name = CLASSES[cls_id] if cls_id < len(CLASSES) else "unknown"
+            detections.append({"class": name, "confidence": conf, "bbox": xyxy})
+    return detections
+
+
+def run_segmentation(image: np.ndarray) -> Tuple[np.ndarray, Dict[str, float]]:
+    """DeepLabV3+ semantic segmentation → class percentages."""
+    from torchvision import transforms
+
+    model = _load_segmentation()
+    h, w = image.shape[:2]
+
+    pil = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    transform = transforms.Compose([
+        transforms.Resize((256, 256)),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+    ])
+    tensor = transform(pil).unsqueeze(0).to(DEVICE)
+
+    with torch.no_grad():
+        out = model(tensor)["out"]
+        mask = out.argmax(dim=1).squeeze().cpu().numpy()
+
+    mask = cv2.resize(mask.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST)
+
+    total_pixels = h * w
+    percentages = {}
+    for i, cls in enumerate(CLASSES):
+        cls_pixels = np.sum(mask == (i + 1))
+        percentages[cls] = round(100.0 * cls_pixels / total_pixels, 2)
+
+    return mask, percentages
+
+
+def run_classification(image: np.ndarray) -> Dict[str, Any]:
+    """EfficientNet image-level classification."""
+    from torchvision import transforms
+
+    model, class_names = _load_classifier()
+    pil = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+    ])
+    tensor = transform(pil).unsqueeze(0).to(DEVICE)
+
+    with torch.no_grad():
+        outputs = model(tensor)
+        probs = torch.softmax(outputs, dim=1)[0].cpu().numpy()
+
+    top_idx = int(np.argmax(probs))
+    return {
+        "predicted_class": class_names[top_idx],
+        "confidence": round(float(probs[top_idx]), 4),
+        "all_probs": {class_names[i]: round(float(probs[i]), 4) for i in range(len(class_names))},
+    }
+
+
+def calculate_risk_level(percentages: Dict[str, float]) -> str:
+    """Determine reef health risk level from class percentages."""
+    bleached = percentages.get("bleached_coral", 0)
+    dead = percentages.get("dead_coral", 0)
+    algae = percentages.get("algae", 0)
+    healthy = percentages.get("healthy_coral", 0)
+
+    stress_score = bleached * 1.5 + dead * 2.0 + algae * 0.8 - healthy * 0.5
+
+    if stress_score >= 40:
+        return "Critical"
+    elif stress_score >= 25:
+        return "High"
+    elif stress_score >= 12:
+        return "Moderate"
+    elif stress_score >= 5:
+        return "Low"
+    return "Minimal"
+
+
+def detect_disease(image: np.ndarray, mask: np.ndarray) -> list:
+    """Heuristic disease detection based on color anomalies in coral regions."""
+    diseases = []
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    # White patch detection (potential bleaching/disease)
+    white_mask = cv2.inRange(hsv, (0, 0, 180), (180, 40, 255))
+    coral_region = mask > 0
+    white_in_coral = np.sum(white_mask[coral_region] > 0)
+    coral_pixels = max(np.sum(coral_region), 1)
+    white_ratio = white_in_coral / coral_pixels
+
+    if white_ratio > 0.15:
+        diseases.append({
+            "type": "White Patch Syndrome",
+            "severity": "High" if white_ratio > 0.3 else "Moderate",
+            "affected_percent": round(white_ratio * 100, 2),
+        })
+
+    # Dark spot detection
+    dark_mask = cv2.inRange(hsv, (0, 0, 0), (180, 255, 60))
+    dark_in_coral = np.sum(dark_mask[coral_region] > 0)
+    dark_ratio = dark_in_coral / coral_pixels
+
+    if dark_ratio > 0.1:
+        diseases.append({
+            "type": "Dark Spot Disease",
+            "severity": "Moderate" if dark_ratio > 0.2 else "Low",
+            "affected_percent": round(dark_ratio * 100, 2),
+        })
+
+    return diseases
+
+
+def annotate_image(image: np.ndarray, mask: np.ndarray, detections: list) -> np.ndarray:
+    """Draw segmentation overlay and detection boxes."""
+    annotated = image.copy()
+    overlay = annotated.copy()
+
+    for i, cls in enumerate(CLASSES):
+        cls_mask = mask == (i + 1)
+        if np.any(cls_mask):
+            color = CLASS_COLORS.get(cls, (255, 255, 255))
+            overlay[cls_mask] = color
+
+    annotated = cv2.addWeighted(overlay, 0.4, annotated, 0.6, 0)
+
+    for det in detections:
+        x1, y1, x2, y2 = [int(v) for v in det["bbox"]]
+        color = CLASS_COLORS.get(det["class"], (255, 255, 255))
+        cv2.rectangle(annotated, (x1, y1), (x2, y2), color, 2)
+        label = f"{det['class']} {det['confidence']:.2f}"
+        cv2.putText(annotated, label, (x1, y1 - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+    return annotated
+
+
+def run_full_inference(image_path: str, output_dir: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Full inference pipeline on a single image.
+
+    Returns dict with percentages, risk, detections, diseases, classification, paths.
+    """
+    image = cv2.imread(image_path)
+    if image is None:
+        raise ValueError(f"Cannot read image: {image_path}")
+
+    processed = preprocess_image(image)
+    detections = run_detection(processed)
+    mask, percentages = run_segmentation(processed)
+    classification = run_classification(processed)
+    diseases = detect_disease(processed, mask)
+    risk_level = calculate_risk_level(percentages)
+    annotated = annotate_image(processed, mask, detections)
+
+    bleaching_pct = percentages.get("bleached_coral", 0)
+
+    result = {
+        "healthy_coral_pct": percentages.get("healthy_coral", 0),
+        "bleached_coral_pct": bleaching_pct,
+        "dead_coral_pct": percentages.get("dead_coral", 0),
+        "algae_pct": percentages.get("algae", 0),
+        "sand_pct": percentages.get("sand", 0),
+        "rock_pct": percentages.get("rock", 0),
+        "bleaching_percentage": bleaching_pct,
+        "risk_level": risk_level,
+        "detections": detections,
+        "classification": classification,
+        "diseases": diseases,
+        "percentages": percentages,
+    }
+
+    if output_dir:
+        out = Path(output_dir)
+        out.mkdir(parents=True, exist_ok=True)
+        stem = Path(image_path).stem
+        ann_path = out / f"{stem}_annotated.jpg"
+        proc_path = out / f"{stem}_processed.jpg"
+        cv2.imwrite(str(ann_path), annotated)
+        cv2.imwrite(str(proc_path), processed)
+        result["annotated_image"] = str(ann_path)
+        result["processed_image"] = str(proc_path)
+
+    return result
+
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) < 2:
+        print("Usage: python inference.py <image_path>")
+        sys.exit(1)
+    result = run_full_inference(sys.argv[1], output_dir="output")
+    print(json.dumps(result, indent=2))

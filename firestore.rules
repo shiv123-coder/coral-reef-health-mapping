@@ -1,0 +1,86 @@
+rules_version = '2';
+
+// Coral Reef Health Mapping — Firestore Security Rules
+// RBAC: admin | researcher | student | viewer
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: user is authenticated
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Helper: get user role from users collection
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isAuth() && getUserRole() == 'admin';
+    }
+
+    function isOwner(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+
+    function isOwnerOrAdmin(userId) {
+      return isOwner(userId) || isAdmin();
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuth() && request.auth.uid == userId
+        && request.resource.data.keys().hasAll(['email', 'firstName', 'lastName', 'role', 'organization'])
+        && request.resource.data.role in ['student', 'researcher', 'viewer'];
+      allow update: if isOwner(userId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'email'])
+        || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Inference uploads / analysis records
+    match /analyses/{analysisId} {
+      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuth()
+        && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuth()
+        && (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Reports (includes admin override fields)
+    match /reports/{reportId} {
+      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuth()
+        && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuth()
+        && (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Public QR report tokens — read-only for anyone with valid token
+    match /public_reports/{qrToken} {
+      allow read: if true;
+      allow write: if isAdmin()
+        || (isAuth() && request.resource.data.userId == request.auth.uid);
+    }
+
+    // System analytics — admin only
+    match /analytics/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Admin audit log
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
