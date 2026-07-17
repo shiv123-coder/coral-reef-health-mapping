@@ -12,6 +12,7 @@ from app.config import get_settings
 from app.core.firebase import generate_qr_token, save_analysis, save_public_report, save_report, utc_now_iso
 from app.core.security import get_current_user
 from app.services.inference_service import inference_service
+import cloudinary.uploader
 
 router = APIRouter(prefix="/inference", tags=["Inference"])
 
@@ -60,6 +61,31 @@ async def upload_and_analyze(
             file_type = "image"
     except Exception as e:
         raise HTTPException(500, f"Inference failed: {str(e)}")
+
+    # Cloudinary Upload
+    annotated_image_url = f"/api/v1/inference/files/{analysis_id}/annotated"
+    annotated_local_path = result.get("annotated_image")
+    
+    if settings.cloudinary_cloud_name and annotated_local_path and os.path.exists(annotated_local_path):
+        try:
+            upload_result = cloudinary.uploader.upload(
+                annotated_local_path,
+                folder=f"coral_reef/{user['uid']}",
+                public_id=f"{analysis_id}_annotated"
+            )
+            annotated_image_url = upload_result.get("secure_url")
+            # Store the URL instead of the local path
+            result["annotated_image"] = annotated_image_url
+            
+            # Optional: upload original file too
+            if not is_video:
+                cloudinary.uploader.upload(
+                    str(file_path),
+                    folder=f"coral_reef/{user['uid']}",
+                    public_id=f"{analysis_id}_original"
+                )
+        except Exception as e:
+            print(f"Cloudinary upload failed: {e}")
 
     qr_token = generate_qr_token()
 
@@ -118,7 +144,7 @@ async def upload_and_analyze(
         "fileName": file.filename,
         "fileType": file_type,
         "fileUrl": f"/api/v1/inference/files/{analysis_id}/{file.filename}",
-        "annotatedImageUrl": f"/api/v1/inference/files/{analysis_id}/annotated",
+        "annotatedImageUrl": annotated_image_url,
         "healthyCoralPct": analysis_record["healthyCoralPct"],
         "bleachedCoralPct": analysis_record["bleachedCoralPct"],
         "deadCoralPct": analysis_record["deadCoralPct"],
@@ -135,7 +161,7 @@ async def upload_and_analyze(
             "healthyCoralPct", "bleachedCoralPct", "deadCoralPct", "algaePct",
             "bleachingPercentage", "riskLevel", "diseases", "detections", "classification",
         ]},
-        "annotatedImageUrl": f"/api/v1/inference/files/{analysis_id}/annotated",
+        "annotatedImageUrl": annotated_image_url,
     }
 
 
@@ -185,8 +211,16 @@ async def get_annotated_image(analysis_id: str, user: dict = Depends(get_current
         raise HTTPException(403, "Access denied")
 
     path = analysis.get("annotatedImagePath")
-    if not path or not os.path.exists(path):
+    if not path:
         raise HTTPException(404, "Annotated image not found")
+        
+    # If the path is a Cloudinary URL, redirect to it
+    if path.startswith("http"):
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(path)
+
+    if not os.path.exists(path):
+        raise HTTPException(404, "Annotated image not found locally")
 
     from fastapi.responses import FileResponse
     return FileResponse(path, media_type="image/jpeg")

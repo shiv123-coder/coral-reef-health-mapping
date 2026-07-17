@@ -11,6 +11,7 @@ Features:
 
 import io
 import os
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -254,11 +255,25 @@ def generate_pdf_report(
         story.append(dis_table)
 
     # Annotated image
-    if annotated_image_path and os.path.exists(annotated_image_path):
+    if annotated_image_path:
         story.append(Spacer(1, 16))
         story.append(Paragraph("Annotated Analysis Image", styles["SectionHead"]))
-        img = RLImage(annotated_image_path, width=4 * inch, height=3 * inch)
-        story.append(img)
+        
+        try:
+            if annotated_image_path.startswith("http"):
+                req = urllib.request.Request(annotated_image_path, headers={"User-Agent": "Mozilla/5.0"})
+                with urllib.request.urlopen(req) as response:
+                    img_data = io.BytesIO(response.read())
+                img = RLImage(img_data, width=4 * inch, height=3 * inch)
+            elif os.path.exists(annotated_image_path):
+                img = RLImage(annotated_image_path, width=4 * inch, height=3 * inch)
+            else:
+                img = None
+                
+            if img:
+                story.append(img)
+        except Exception as e:
+            print(f"Failed to embed image in PDF: {e}")
 
     # QR Code section
     story.append(Spacer(1, 20))

@@ -43,7 +43,7 @@ NUM_SEG_CLASSES = NUM_CLASSES + 1  # +background
 
 def train_yolo():
     """Fine-tune YOLOv11n on coral detection dataset."""
-    print("\n🔵 Training YOLOv11n (Detection)...")
+    print("\nTraining YOLOv11n (Detection)...")
     from ultralytics import YOLO
 
     data_yaml = DATA_DIR / "yolo" / "data.yaml"
@@ -69,7 +69,7 @@ def train_yolo():
     if best.exists():
         import shutil
         shutil.copy2(best, final)
-    print(f"✅ YOLO saved: {final}")
+    print(f"YOLO saved: {final}")
     return results
 
 
@@ -100,13 +100,15 @@ class SegmentationDataset(torch.utils.data.Dataset):
         if self.transform:
             image = self.transform(image)
 
+        # Ensure mask is also resized to 256x256 before batching
+        mask = cv2.resize(mask, (256, 256), interpolation=cv2.INTER_NEAREST)
         mask = torch.from_numpy(mask).long()
         return image, mask
 
 
 def train_segmentation():
     """Fine-tune DeepLabV3+ for coral segmentation."""
-    print("\n🟢 Training DeepLabV3+ (Segmentation)...")
+    print("\nTraining DeepLabV3+ (Segmentation)...")
 
     transform = transforms.Compose([
         transforms.Resize((256, 256)),
@@ -118,7 +120,7 @@ def train_segmentation():
     val_ds = SegmentationDataset(DATA_DIR / "segmentation" / "val", transform)
 
     if len(train_ds) == 0:
-        print("⚠ No segmentation data — skipping")
+        print("No segmentation data — skipping")
         return
 
     train_loader = DataLoader(train_ds, batch_size=4, shuffle=True, num_workers=0)
@@ -174,12 +176,12 @@ def train_segmentation():
             best_iou = avg_iou
             torch.save(model.state_dict(), WEIGHTS_DIR / "deeplabv3_best.pth")
 
-    print(f"✅ Segmentation saved: {WEIGHTS_DIR / 'deeplabv3_best.pth'} (IoU: {best_iou:.4f})")
+    print(f"Segmentation saved: {WEIGHTS_DIR / 'deeplabv3_best.pth'} (IoU: {best_iou:.4f})")
 
 
 def train_classifier():
     """Fine-tune EfficientNet-B0 for coral health classification."""
-    print("\n🟡 Training EfficientNet-B0 (Classification)...")
+    print("\nTraining EfficientNet-B0 (Classification)...")
 
     train_transform = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -198,7 +200,7 @@ def train_classifier():
     val_dir = DATA_DIR / "classification" / "val"
 
     if not train_dir.exists():
-        print("⚠ No classification data — skipping")
+        print("No classification data — skipping")
         return
 
     train_ds = datasets.ImageFolder(str(train_dir), transform=train_transform)
@@ -256,15 +258,15 @@ def train_classifier():
                 "num_classes": NUM_CLASSES,
             }, WEIGHTS_DIR / "efficientnet_best.pth")
 
-    print(f"✅ Classifier saved: {WEIGHTS_DIR / 'efficientnet_best.pth'} (Acc: {best_acc:.1f}%)")
+    print(f"Classifier saved: {WEIGHTS_DIR / 'efficientnet_best.pth'} (Acc: {best_acc:.1f}%)")
 
 
 def main():
-    print(f"🌊 Coral Reef ML Training Pipeline")
+    print(f"Coral Reef ML Training Pipeline")
     print(f"   Device: {DEVICE} | Epochs: {EPOCHS} | Batch: {BATCH_SIZE}\n")
 
     if not (DATA_DIR / "dataset_meta.json").exists():
-        print("❌ Dataset not found. Run: python download_dataset.py")
+        print("Dataset not found. Run: python download_dataset.py")
         return
 
     train_yolo()
@@ -283,7 +285,7 @@ def main():
     with open(WEIGHTS_DIR / "training_summary.json", "w") as f:
         json.dump(summary, f, indent=2)
 
-    print("\n🎉 All models trained! Run: python evaluate.py")
+    print("\nAll models trained! Run: python evaluate.py")
 
 
 if __name__ == "__main__":

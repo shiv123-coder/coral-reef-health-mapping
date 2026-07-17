@@ -1,0 +1,9 @@
+{
+  "epochs": 3,
+  "device": "cpu",
+  "weights": {
+    "yolo": "D:\\~Projects\\CoralReefMapping\\ml\\weights\\yolo_best.pt",
+    "segmentation": "D:\\~Projects\\CoralReefMapping\\ml\\weights\\deeplabv3_best.pth",
+    "classifier": "D:\\~Projects\\CoralReefMapping\\ml\\weights\\efficientnet_best.pth"
+  }
+}

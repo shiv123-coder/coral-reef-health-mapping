@@ -8,6 +8,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+import cloudinary
+
 from app.config import get_settings
 from app.core.firebase import init_firebase, create_user_profile, get_user_profile
 from app.api.routes import auth, inference, reports, dashboard, admin, public
@@ -58,6 +60,16 @@ async def lifespan(app: FastAPI):
     Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
     Path(settings.report_dir).mkdir(parents=True, exist_ok=True)
     init_firebase()
+    
+    if settings.cloudinary_cloud_name:
+        cloudinary.config(
+            cloud_name=settings.cloudinary_cloud_name,
+            api_key=settings.cloudinary_api_key,
+            api_secret=settings.cloudinary_api_secret,
+            secure=True,
+        )
+        print("✅ Cloudinary initialized")
+        
     seed_admin_account()
     yield
 

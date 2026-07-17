@@ -14,6 +14,7 @@ import os
 import json
 import random
 import shutil
+import time
 import urllib.request
 from pathlib import Path
 
@@ -48,24 +49,17 @@ SAMPLE_URLS = {
         "https://images.unsplash.com/photo-1682687221038-404cb8830901?w=640",
     ],
     "bleached_coral": [
-        "https://images.unsplash.com/photo-1551244072-9d12895649a2?w=640",
-        "https://images.unsplash.com/photo-1586500036706-1176f9764b4b?w=640",
-        "https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=640",
-        "https://images.unsplash.com/photo-1518837695005-2083093fe35d?w=640",
+        "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=640",
     ],
     "dead_coral": [
         "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=640&q=80",
-        "https://images.unsplash.com/photo-1544551763-77ef8759130c?w=640",
         "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=640",
     ],
     "algae": [
         "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=640",
-        "https://images.unsplash.com/photo-1583212292454-1fe622960057?w=640&q=75",
-        "https://images.unsplash.com/photo-1682687220063-4742bd7fd538?w=640&q=75",
     ],
     "sand": [
         "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=640",
-        "https://images.unsplash.com/photo-1518837695005-2083093fe35d?w=640",
     ],
     "rock": [
         "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=640",
@@ -82,7 +76,7 @@ def download_image(url: str, dest: Path) -> bool:
             dest.write_bytes(resp.read())
         return True
     except Exception as e:
-        print(f"  ⚠ Failed: {url} — {e}")
+        print(f"  Failed: {url} — {e}")
         return False
 
 
@@ -95,8 +89,13 @@ def augment_copies(src_dir: Path, class_name: str, target_count: int = 20):
     while len(list(src_dir.glob(f"{class_name}_*.jpg"))) < target_count:
         src = random.choice(files)
         dst = src_dir / f"{class_name}_{idx:03d}.jpg"
-        shutil.copy2(src, dst)
-        idx += 1
+        for _ in range(3):
+            try:
+                shutil.copy2(src, dst)
+                idx += 1
+                break
+            except PermissionError:
+                time.sleep(0.5)  # Bypass Windows Defender file lock
 
 
 def setup_yolo_dataset():
@@ -191,8 +190,10 @@ def try_kaggle_download():
     """Optional: download from Kaggle if credentials are set."""
     username = os.getenv("KAGGLE_USERNAME")
     key = os.getenv("KAGGLE_KEY")
-    if not username or not key:
-        print("ℹ Kaggle credentials not set — using public sample URLs")
+    api_token = os.getenv("KAGGLE_API_TOKEN")
+    
+    if not (api_token or (username and key)):
+        print("Kaggle credentials not set — using public sample URLs")
         return False
 
     try:
@@ -204,15 +205,15 @@ def try_kaggle_download():
             path=str(RAW_DIR / "kaggle"),
             unzip=True,
         )
-        print("✅ Kaggle dataset downloaded")
+        print("Kaggle dataset downloaded")
         return True
     except Exception as e:
-        print(f"⚠ Kaggle download failed: {e}")
+        print(f"Kaggle download failed: {e}")
         return False
 
 
 def main():
-    print("🌊 Downloading lightweight coral reef dataset...\n")
+    print("Downloading lightweight coral reef dataset...\n")
 
     for cls in CLASSES:
         cls_dir = RAW_DIR / cls
@@ -233,7 +234,7 @@ def main():
         augment_copies(RAW_DIR / cls, cls, target_count=24)
 
     total = sum(1 for _ in RAW_DIR.glob("*/*.jpg"))
-    print(f"\n📦 Total images: {total}")
+    print(f"\nTotal images: {total}")
 
     setup_yolo_dataset()
     setup_classification_dataset()
@@ -243,7 +244,7 @@ def main():
     with open(DATA_DIR / "dataset_meta.json", "w") as f:
         json.dump(meta, f, indent=2)
 
-    print("\n✅ Dataset ready at ml/data/")
+    print("\nDataset ready at ml/data/")
     print("   Next: python train_all.py")
 
 

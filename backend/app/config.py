@@ -42,6 +42,10 @@ class Settings(BaseSettings):
         os.getenv("FRONTEND_URL", "") + "/public/report",
     )
 
+    cloudinary_cloud_name: str = os.getenv("CLOUDINARY_CLOUD_NAME", "")
+    cloudinary_api_key: str = os.getenv("CLOUDINARY_API_KEY", "")
+    cloudinary_api_secret: str = os.getenv("CLOUDINARY_API_SECRET", "")
+
     @property
     def cors_origin_list(self) -> list:
         if not self.cors_origins:
