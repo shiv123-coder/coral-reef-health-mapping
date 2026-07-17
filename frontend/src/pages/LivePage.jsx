@@ -40,9 +40,11 @@ export default function LivePage() {
     setError('');
     const canvas = canvasRef.current;
     const video = videoRef.current;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
+    const MAX_WIDTH = 640;
+    const scale = Math.min(MAX_WIDTH / video.videoWidth, 1);
+    canvas.width = video.videoWidth * scale;
+    canvas.height = video.videoHeight * scale;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
     canvas.toBlob(async (blob) => {
       try {
         const data = await liveInference(blob);

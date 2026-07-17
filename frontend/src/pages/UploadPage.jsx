@@ -23,12 +23,54 @@ export default function UploadPage() {
     maxFiles: 1,
   });
 
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
+      if (!file.type.startsWith('image/')) {
+        resolve(file); // Don't compress videos
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_SIZE = 1024;
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > height && width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          } else if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          canvas.toBlob((blob) => {
+            const compressedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          }, 'image/jpeg', 0.8);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleAnalyze = async () => {
     if (!file) return;
     setLoading(true);
     setError('');
     try {
-      const data = await uploadFile(file, lat || null, lng || null);
+      // Professionally compress the image client-side to prevent network timeouts on slow connections
+      const processedFile = await compressImage(file);
+      const data = await uploadFile(processedFile, lat || null, lng || null);
       setResult(data);
     } catch (err) {
       setError(err.response?.data?.detail || err.message);
@@ -108,7 +150,14 @@ export default function UploadPage() {
             </div>
             <GlassCard style={{ marginTop: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <h3 style={{ fontFamily: 'var(--font-display)' }}>Analysis Results</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <h3 style={{ fontFamily: 'var(--font-display)' }}>Analysis Results</h3>
+                  {result.exifVerified === false && result.fileType === 'image' && (
+                    <span style={{ fontSize: '0.75rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid #ef4444', padding: '4px 8px', borderRadius: 4, fontWeight: 600, textTransform: 'uppercase' }}>
+                      Unverified Origin (No EXIF)
+                    </span>
+                  )}
+                </div>
                 <RiskBadge level={result.riskLevel} />
               </div>
               <p style={{ color: '#94a3b8', marginBottom: 16 }}>

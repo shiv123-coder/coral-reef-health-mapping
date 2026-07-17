@@ -31,7 +31,8 @@ class InferenceService:
         """
         from app.services.video_processor import extract_frames
 
-        frames = extract_frames(video_path, frames_dir, max_frames=20)
+        # Extract only 3 frames (start, middle, end) to optimize performance on CPU instances
+        frames = extract_frames(video_path, frames_dir, max_frames=3)
         if not frames:
             raise ValueError("No frames extracted from video")
 

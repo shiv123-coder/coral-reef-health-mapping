@@ -6,13 +6,17 @@ import shutil
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Request
 
 from app.config import get_settings
 from app.core.firebase import generate_qr_token, save_analysis, save_public_report, save_report, utc_now_iso
 from app.core.security import get_current_user
 from app.services.inference_service import inference_service
 import cloudinary.uploader
+from PIL import Image
+from io import BytesIO
+
+from app.main import limiter
 
 router = APIRouter(prefix="/inference", tags=["Inference"])
 
@@ -23,7 +27,9 @@ def _allowed_file(filename: str) -> bool:
 
 
 @router.post("/upload")
+@limiter.limit("5/minute")
 async def upload_and_analyze(
+    request: Request,
     file: UploadFile = File(...),
     latitude: Optional[float] = Form(None),
     longitude: Optional[float] = Form(None),
@@ -45,11 +51,21 @@ async def upload_and_analyze(
     if len(content) > max_bytes:
         raise HTTPException(413, f"File exceeds {settings.max_upload_size_mb}MB limit")
 
-    with open(file_path, "wb") as f:
-        f.write(content)
-
     ext = file.filename.rsplit(".", 1)[-1].lower()
     is_video = ext in {"mp4", "avi", "mov", "mkv"}
+    
+    exif_verified = False
+    if not is_video:
+        try:
+            img = Image.open(BytesIO(content))
+            exif = img._getexif()
+            if exif is not None:
+                exif_verified = True
+        except Exception:
+            pass
+
+    with open(file_path, "wb") as f:
+        f.write(content)
 
     try:
         if is_video:
@@ -94,6 +110,7 @@ async def upload_and_analyze(
         "userId": user["uid"],
         "fileName": file.filename,
         "fileType": file_type,
+        "exifVerified": exif_verified,
         "healthyCoralPct": result.get("healthy_coral_pct", 0),
         "bleachedCoralPct": result.get("bleached_coral_pct", 0),
         "deadCoralPct": result.get("dead_coral_pct", 0),
@@ -158,7 +175,7 @@ async def upload_and_analyze(
         "reportId": report_id,
         "qrToken": qr_token,
         **{k: analysis_record[k] for k in [
-            "healthyCoralPct", "bleachedCoralPct", "deadCoralPct", "algaePct",
+            "exifVerified", "healthyCoralPct", "bleachedCoralPct", "deadCoralPct", "algaePct",
             "bleachingPercentage", "riskLevel", "diseases", "detections", "classification",
         ]},
         "annotatedImageUrl": annotated_image_url,

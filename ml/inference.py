@@ -22,7 +22,7 @@ load_dotenv(Path(__file__).parent.parent / ".env.production")
 BASE_DIR = Path(__file__).parent
 WEIGHTS_DIR = BASE_DIR / "weights"
 DEVICE = torch.device(os.getenv("INFERENCE_DEVICE", "cuda" if torch.cuda.is_available() else "cpu"))
-CONF_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.5"))
+CONF_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.65"))
 
 CLASSES = ["healthy_coral", "bleached_coral", "dead_coral", "algae", "sand", "rock"]
 CLASS_COLORS = {

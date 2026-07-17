@@ -2,18 +2,38 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
 
-    // This rule allows anyone with your Firestore database reference to view, edit,
-    // and delete all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Firestore database will be denied until you Update
-    // your rules
-    match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2026, 8, 16);
+    // Check if user is admin or auditor
+    function isElevated() {
+      return isAuthenticated() && (request.auth.token.role == "admin" || request.auth.token.role == "auditor");
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (request.auth.uid == userId || isElevated());
+    }
+
+    match /analyses/{analysisId} {
+      // Elevated roles can read all. Regular users can only read their own.
+      allow read: if isElevated() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isElevated();
+    }
+
+    match /reports/{reportId} {
+      allow read: if isElevated() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isElevated();
+    }
+    
+    match /public_reports/{token} {
+      allow read: if true;
+      allow write: if isElevated();
     }
   }
 }
