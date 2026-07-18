@@ -87,6 +87,8 @@ export default function AdminPage() {
     }));
   }, [analyses]);
 
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1400, margin: '0 auto', color: 'var(--text)' }}>
       {/* Key Metrics Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
         <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 8, padding: 20 }}>
