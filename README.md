@@ -2,6 +2,12 @@
   <h1>🌊 CoralAI: Deep Learning Framework for Coral Reef Health Mapping</h1>
   <p><strong>An AI-powered system that detects, segments, classifies, and maps coral reef health from underwater images and drone footage.</strong></p>
   <p><i>SPPU BE 2019 Pattern — Final Year Engineering Project</i></p>
+  
+  <h3>🌍 Live Demo Links:</h3>
+  <p>
+    <strong>User Portal:</strong> <a href="https://coral-reef-frontend.vercel.app/login">coral-reef-frontend.vercel.app/login</a><br/>
+    <strong>Admin Portal:</strong> <a href="https://coral-reef-frontend.vercel.app/admin/login">coral-reef-frontend.vercel.app/admin/login</a>
+  </p>
 </div>
 
 <br />
