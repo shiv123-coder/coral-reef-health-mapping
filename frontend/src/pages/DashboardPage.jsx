@@ -4,7 +4,6 @@ import Sidebar from '../components/Sidebar';
 import NotificationDropdown from '../components/NotificationDropdown';
 import { getDashboardStats } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import ThemeToggle from '../components/ThemeToggle';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState(null);
@@ -60,7 +59,6 @@ export default function DashboardPage() {
             <input type="text" placeholder="Search anything..." style={{ background: 'none', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 13.5, width: '100%' }} />
           </div>
           <NotificationDropdown />
-          <ThemeToggle />
         </div>
 
         <div style={{ marginBottom: 22 }}>

@@ -18,7 +18,6 @@ export default function Sidebar() {
           <svg width="30" height="30" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 12 }}><path d="M12 2C9 2 7 5 7 8c0 2 1 3 1 5 0 3-2 4-2 7 0 1 1 2 2 2s2-1 2-2c0-2 1-3 2-3s2 1 2 3c0 1 1 2 2 2s2-1 2-2c0-3-2-4-2-7 0-2 1-3 1-5 0-3-2-6-5-6z" fill="url(#sg)"/><defs><linearGradient id="sg" x1="7" y1="2" x2="17" y2="22"><stop stopColor="#4fd6e8"/><stop offset="1" stopColor="#3b7dff"/></linearGradient></defs></svg>
           <div><h1 style={{ fontSize: 18, fontWeight: 800 }}>Coral<span style={{ background: 'linear-gradient(90deg,#7dd8ff,#4fd6e8)', WebkitBackgroundClip: 'text', color: 'transparent' }}>AI</span></h1><div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>Coral Reef Health Analyzer</div></div>
         </div>
-        <ThemeToggle />
       </div>
 
       <nav className="nav" style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
@@ -49,6 +48,10 @@ export default function Sidebar() {
           </Link>
         )}
       </nav>
+
+      <div style={{ padding: '0 4px 20px', display: 'flex', justifyContent: 'center' }}>
+        <ThemeToggle />
+      </div>
 
       <div className="user-card" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.02)', margin: '0 4px', border: '1px solid rgba(255,255,255,0.05)' }}>
         <div style={{ width: 36, height: 36, borderRadius: '50%', flex: 'none', background: 'linear-gradient(135deg, #3b7dff, #4fd6e8)' }}></div>

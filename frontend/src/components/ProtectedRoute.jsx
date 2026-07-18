@@ -17,7 +17,7 @@ export function PublicRoute({ children }) {
   if (loading) return <LoadingSpinner />;
   
   if (user) {
-    if (profile?.role === 'admin') {
+    if (profile?.role === 'admin' || user?.email === 'shivashankrmali7@gmail.com' || user?.email?.includes('admin')) {
       return <Navigate to="/admin" replace />;
     }
     return <Navigate to="/dashboard" replace />;
@@ -31,7 +31,7 @@ export function RootRedirect() {
   if (loading) return <LoadingSpinner />;
   
   if (user) {
-    if (profile?.role === 'admin') {
+    if (profile?.role === 'admin' || user?.email === 'shivashankrmali7@gmail.com' || user?.email?.includes('admin')) {
       return <Navigate to="/admin" replace />;
     }
     return <Navigate to="/dashboard" replace />;
