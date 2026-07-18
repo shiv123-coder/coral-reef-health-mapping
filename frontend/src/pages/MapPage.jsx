@@ -53,92 +53,101 @@ export default function MapPage() {
   return (
     <div className="layout" style={{ display: 'grid', gridTemplateColumns: '232px 1fr', minHeight: '100vh', background: 'var(--bg)' }}>
       <Sidebar />
-      <div className="main" style={{ padding: '30px 40px', flex: 1, maxWidth: 1600, margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24, borderBottom: '1px solid var(--border-color)', paddingBottom: 16 }}>
+      <div className="main" style={{ padding: '24px 32px', flex: 1, maxWidth: '100%', margin: '0', display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 20, borderBottom: '1px solid var(--border-color)', paddingBottom: 16, flexShrink: 0, paddingRight: 90 }}>
           <div>
-            <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <MapIcon size={28} color="var(--primary-500)" />
+            <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: '1.5rem' }}>
+              <MapIcon size={24} color="var(--primary-500)" />
               Geographic Information System (GIS)
             </h1>
-            <p className="page-subtitle" style={{ margin: 0 }}>Advanced spatial analysis and geospatial telemetry mapping</p>
+            <p className="page-subtitle" style={{ margin: 0, fontSize: '0.85rem' }}>Advanced spatial analysis and geospatial telemetry mapping</p>
           </div>
         </div>
 
         {loading ? (
-          <LoadingSpinner text="Loading spatial data..." />
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <LoadingSpinner text="Loading spatial data..." />
+          </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 24, height: '75vh', minHeight: 600 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 24, flex: 1, minHeight: 0 }}>
             {/* GIS Control Panel */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto' }}>
-              <GlassCard style={{ padding: '20px' }}>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Filter size={18} /> Spatial Filters
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', paddingRight: 8 }}>
+              
+              <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, padding: 20 }}>
+                <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, color: '#f8fafc' }}>
+                  <Filter size={16} color="#94a3b8" /> Spatial Filters
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Risk Severity</label>
+                
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>Risk Severity</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {riskLevels.map(level => (
                     <button
                       key={level}
                       onClick={() => setActiveFilter(level)}
                       style={{
-                        padding: '8px 12px',
-                        background: activeFilter === level ? (level === 'All' ? 'var(--primary-500)' : riskColor(level)) : 'transparent',
-                        border: `1px solid ${level === 'All' ? 'var(--primary-500)' : riskColor(level)}`,
-                        color: activeFilter === level ? '#fff' : 'var(--text-primary)',
-                        borderRadius: 6,
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        padding: '10px 14px',
+                        background: activeFilter === level ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+                        border: `1px solid ${activeFilter === level ? 'rgba(59, 130, 246, 0.3)' : 'transparent'}`,
+                        color: activeFilter === level ? '#3b82f6' : '#cbd5e1',
+                        borderRadius: 8,
                         textAlign: 'left',
                         cursor: 'pointer',
-                        fontWeight: 600,
+                        fontSize: '13px',
+                        fontWeight: 500,
                         transition: 'all 0.2s'
                       }}
+                      onMouseOver={e => { if (activeFilter !== level) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                      onMouseOut={e => { if (activeFilter !== level) e.currentTarget.style.background = 'transparent'; }}
                     >
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: level === 'All' ? '#3b82f6' : riskColor(level), boxShadow: activeFilter === level ? `0 0 8px ${level === 'All' ? '#3b82f6' : riskColor(level)}` : 'none' }}></div>
                       {level === 'All' ? 'View All Zones' : `${level} Risk`}
                     </button>
                   ))}
                 </div>
-              </GlassCard>
+              </div>
 
-              <GlassCard style={{ padding: '20px', flex: 1 }}>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Layers size={18} /> Layer Intelligence
+              <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, padding: 20, flex: 1 }}>
+                <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, color: '#f8fafc' }}>
+                  <Layers size={16} color="#94a3b8" /> Layer Intelligence
                 </h3>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  <p style={{ marginBottom: 12 }}>Displaying <strong>{mapped.length}</strong> active telemetry points matching current spatial filters.</p>
+                <div style={{ fontSize: '12px', color: '#94a3b8', lineHeight: 1.5 }}>
+                  <p style={{ marginBottom: 16 }}>Displaying <strong style={{ color: '#f8fafc' }}>{mapped.length}</strong> active telemetry points matching current spatial filters.</p>
                   
                   <div 
                     onClick={() => setShowHotspots(!showHotspots)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16, padding: '12px', background: showHotspots ? 'rgba(249, 115, 22, 0.15)' : 'var(--bg-hover)', border: `1px solid ${showHotspots ? 'var(--warning)' : 'transparent'}`, borderRadius: 8, cursor: 'pointer', transition: 'all 0.2s' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: showHotspots ? 'rgba(245, 158, 11, 0.1)' : 'rgba(30, 41, 59, 0.4)', border: `1px solid ${showHotspots ? 'rgba(245, 158, 11, 0.3)' : '#1e293b'}`, borderRadius: 8, cursor: 'pointer', transition: 'all 0.2s', marginBottom: 10 }}
                   >
-                    <AlertTriangle size={24} color="var(--warning)" />
+                    <AlertTriangle size={20} color={showHotspots ? '#f59e0b' : '#64748b'} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Bleaching Hotspots</div>
-                      <div style={{ fontSize: '0.75rem' }}>Auto-detected via AI consensus</div>
+                      <div style={{ fontWeight: 600, color: showHotspots ? '#f59e0b' : '#cbd5e1', fontSize: '13px' }}>Bleaching Hotspots</div>
+                      <div style={{ fontSize: '11px', color: '#64748b', marginTop: 2 }}>Auto-detected via AI consensus</div>
                     </div>
-                    <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${showHotspots ? 'var(--warning)' : 'var(--text-muted)'}`, background: showHotspots ? 'var(--warning)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {showHotspots && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>}
+                    <div style={{ width: 16, height: 16, borderRadius: 4, border: `1px solid ${showHotspots ? '#f59e0b' : '#475569'}`, background: showHotspots ? '#f59e0b' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {showHotspots && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>}
                     </div>
                   </div>
                   
                   <div 
                     onClick={() => setShowProtectedAreas(!showProtectedAreas)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8, padding: '12px', background: showProtectedAreas ? 'rgba(34, 197, 94, 0.15)' : 'var(--bg-hover)', border: `1px solid ${showProtectedAreas ? 'var(--success)' : 'transparent'}`, borderRadius: 8, cursor: 'pointer', transition: 'all 0.2s' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: showProtectedAreas ? 'rgba(16, 185, 129, 0.1)' : 'rgba(30, 41, 59, 0.4)', border: `1px solid ${showProtectedAreas ? 'rgba(16, 185, 129, 0.3)' : '#1e293b'}`, borderRadius: 8, cursor: 'pointer', transition: 'all 0.2s' }}
                   >
-                    <Droplet size={24} color="var(--success)" />
+                    <Droplet size={20} color={showProtectedAreas ? '#10b981' : '#64748b'} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Marine Protected Areas</div>
-                      <div style={{ fontSize: '0.75rem' }}>Sanctuary zones mapped</div>
+                      <div style={{ fontWeight: 600, color: showProtectedAreas ? '#10b981' : '#cbd5e1', fontSize: '13px' }}>Marine Protected Areas</div>
+                      <div style={{ fontSize: '11px', color: '#64748b', marginTop: 2 }}>Sanctuary zones mapped</div>
                     </div>
-                    <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${showProtectedAreas ? 'var(--success)' : 'var(--text-muted)'}`, background: showProtectedAreas ? 'var(--success)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {showProtectedAreas && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>}
+                    <div style={{ width: 16, height: 16, borderRadius: 4, border: `1px solid ${showProtectedAreas ? '#10b981' : '#475569'}`, background: showProtectedAreas ? '#10b981' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {showProtectedAreas && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>}
                     </div>
                   </div>
                 </div>
-              </GlassCard>
+              </div>
             </div>
 
             {/* Main Map Area */}
-            <GlassCard style={{ padding: 0, overflow: 'hidden', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ flex: 1, position: 'relative', width: '100%' }}>
+            <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, overflow: 'hidden', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%' }}>
                 <MapContainer 
                   center={mapped[0] ? [mapped[0].latitude, mapped[0].longitude] : DEFAULT_CENTER} 
                   zoom={mapped.length ? 8 : 5} 
@@ -219,7 +228,7 @@ export default function MapPage() {
                 ))}
               </MapContainer>
               </div>
-            </GlassCard>
+            </div>
           </div>
         )}
       </div>

@@ -140,7 +140,7 @@ export default function UploadPage() {
       <Sidebar />
       <main className="main" style={{ padding: '26px 30px 40px', overflowX: 'hidden' }}>
         
-        <div style={{ marginBottom: 32 }}>
+        <div style={{ marginBottom: 32, paddingRight: 90 }}>
           <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>New Analysis</h2>
           <p style={{ color: 'var(--text-dim)', fontSize: 14 }}>Upload a coral image to run deep learning analysis.</p>
         </div>

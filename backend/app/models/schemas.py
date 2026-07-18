@@ -22,6 +22,7 @@ class ReportOverrideRequest(BaseModel):
     deadCoralPct: Optional[float] = None
     algaePct: Optional[float] = None
     riskLevel: Optional[str] = None
+    status: Optional[str] = None
     aiConclusion: Optional[str] = None
     adminNotes: Optional[str] = None
     finalized: bool = False

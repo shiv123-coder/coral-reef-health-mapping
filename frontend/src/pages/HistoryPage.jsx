@@ -61,7 +61,7 @@ export default function HistoryPage() {
     <div className="layout" style={{ display: 'grid', gridTemplateColumns: '232px 1fr', minHeight: '100vh', background: 'var(--bg)' }}>
       <Sidebar />
       <div className="main" style={{ padding: '30px 40px', flex: 1, maxWidth: 1400, margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24, borderBottom: '1px solid var(--border-color)', paddingBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24, borderBottom: '1px solid var(--border-color)', paddingBottom: 16, paddingRight: 90 }}>
           <div>
             <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <Database size={28} color="var(--primary-500)" />
@@ -70,9 +70,6 @@ export default function HistoryPage() {
             <p className="page-subtitle" style={{ margin: 0 }}>Enterprise data export, historical trends, and API management</p>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
-            <button className="btn btn-ghost" style={{ padding: '8px 16px', fontSize: '0.85rem' }} onClick={() => alert("API Key generation is restricted to Government Auditor roles.")}>
-              <Key size={16} /> Manage API Keys
-            </button>
             <button className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '0.85rem' }} onClick={exportCsv}>
               <Download size={16} /> Export to CSV (Dataset)
             </button>

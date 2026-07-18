@@ -53,7 +53,7 @@ export default function DashboardPage() {
       <Sidebar />
       
       <main className="main" style={{ padding: '26px 30px 40px', overflowX: 'hidden', background: 'var(--bg-deep)' }}>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 16, marginBottom: 26 }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 16, marginBottom: 26, paddingRight: 90 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 16px', width: 260, color: 'var(--text-faint)' }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
             <input type="text" placeholder="Search anything..." style={{ background: 'none', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 13.5, width: '100%' }} />

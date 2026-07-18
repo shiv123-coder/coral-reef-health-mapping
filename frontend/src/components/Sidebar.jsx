@@ -52,11 +52,6 @@ export default function Sidebar() {
         )}
       </nav>
 
-      {/* Theme Toggle centered above user profile */}
-      <div style={{ padding: '20px 4px', display: 'flex', justifyContent: 'center' }}>
-        <ThemeToggle />
-      </div>
-
       {/* User Profile Card */}
       <div className="user-card" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.02)', margin: '0 4px', border: '1px solid rgba(255,255,255,0.05)', position: 'relative', zIndex: 2 }}>
         <div style={{ width: 36, height: 36, borderRadius: '50%', flex: 'none', background: 'linear-gradient(135deg, #3b7dff, #4fd6e8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold' }}>

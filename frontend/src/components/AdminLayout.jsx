@@ -37,7 +37,29 @@ export default function AdminLayout() {
             System Dashboard
           </NavLink>
 
-          {/* Add more admin routes here in the future like /admin/users, /admin/settings */}
+          <NavLink to="/admin/analyses" style={({ isActive }) => ({
+            display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 6, textDecoration: 'none',
+            fontSize: 14, fontWeight: 500, transition: 'all 0.2s',
+            background: isActive ? '#1e293b' : 'transparent',
+            color: isActive ? '#f8fafc' : '#94a3b8',
+            borderLeft: isActive ? '3px solid #ef4444' : '3px solid transparent'
+          })}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            Analysis Pipeline
+          </NavLink>
+
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginTop: 16, marginBottom: 8, paddingLeft: 8 }}>System</div>
+
+          <NavLink to="/admin/settings" style={({ isActive }) => ({
+            display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 6, textDecoration: 'none',
+            fontSize: 14, fontWeight: 500, transition: 'all 0.2s',
+            background: isActive ? '#1e293b' : 'transparent',
+            color: isActive ? '#f8fafc' : '#94a3b8',
+            borderLeft: isActive ? '3px solid #ef4444' : '3px solid transparent'
+          })}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            Admin Settings
+          </NavLink>
         </nav>
 
         <div style={{ padding: '20px 16px', borderTop: '1px solid #1e293b' }}>
@@ -67,7 +89,7 @@ export default function AdminLayout() {
             <span>/</span>
             <span style={{ color: '#ef4444' }}>System Dashboard</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingRight: 90 }}>
             <div style={{ padding: '6px 12px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: 20, fontSize: 12, fontWeight: 600, color: '#10b981', display: 'flex', alignItems: 'center', gap: 6 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }}></div>
               System Healthy

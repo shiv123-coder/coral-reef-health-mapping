@@ -258,6 +258,40 @@ img {
   -webkit-text-fill-color: transparent;
 }
 
+/* Data Table Styles */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+.data-table th {
+  padding: 14px 24px;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--text-faint);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.75rem;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.data-table td {
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  vertical-align: middle;
+}
+
+.data-table tbody tr {
+  transition: background 0.2s;
+}
+
+.data-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
 /* Global Responsive Adjustments for Layout Grid */
 @media (max-width: 900px) {
   .layout {
