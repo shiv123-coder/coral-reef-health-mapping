@@ -108,7 +108,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="layout" style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="layout" style={{ display: 'grid', gridTemplateColumns: '232px 1fr', minHeight: '100vh', background: 'var(--bg)' }}>
       <Sidebar />
       <div className="main" style={{ padding: '40px', flex: 1, maxWidth: 1200, margin: '0 auto' }}>
         

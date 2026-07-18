@@ -225,7 +225,7 @@ export default function LoginPage() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '-8px 0 22px' }}>
-              <Link to="#" style={{ fontSize: 13, color: 'var(--cyan)' }}>Forgot Password?</Link>
+              <span style={{ fontSize: 12.5, color: 'var(--text-faint)' }}>Forgot Password? <strong style={{ color: 'var(--cyan)', fontWeight: 600 }}>Contact Admin</strong></span>
             </div>
 
             <button type="submit" disabled={loading} style={{

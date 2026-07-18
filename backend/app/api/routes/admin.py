@@ -34,11 +34,17 @@ class UserUpdate(BaseModel):
     lastName: Optional[str] = None
     organization: Optional[str] = None
     role: Optional[str] = None
+    newPassword: Optional[str] = None
 
 @router.put("/users/{uid}")
 async def admin_update_user(uid: str, update: UserUpdate, admin: dict = Depends(require_admin)):
     """Update user profile."""
     update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    
+    new_password = update_data.pop("newPassword", None)
+    if new_password:
+        from firebase_admin import auth
+        auth.update_user(uid, password=new_password)
     
     if "role" in update_data and update_data["role"] not in ("admin", "researcher", "student", "viewer"):
         raise HTTPException(400, "Invalid role")

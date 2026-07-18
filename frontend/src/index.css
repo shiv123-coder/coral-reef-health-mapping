@@ -39,6 +39,21 @@
   --info: var(--blue);
 }
 
+html[data-theme="light"] {
+  --bg-deep: #f2f8fc;
+  --bg-navy: #e1effa;
+  --card: #ffffff;
+  --card-border: rgba(59, 158, 255, 0.2);
+  --input-bg: #f9fcff;
+  --input-border: rgba(59, 158, 255, 0.3);
+  
+  --text: #081c36;
+  --text-dim: #3a5370;
+  --text-faint: #6a82a0;
+  
+  --bg-hover: rgba(59, 158, 255, 0.06);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

@@ -51,7 +51,7 @@ export default function MapPage() {
   const riskLevels = ['All', 'Critical', 'High', 'Moderate', 'Low', 'Minimal'];
 
   return (
-    <div className="layout" style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="layout" style={{ display: 'grid', gridTemplateColumns: '232px 1fr', minHeight: '100vh', background: 'var(--bg)' }}>
       <Sidebar />
       <div className="main" style={{ padding: '30px 40px', flex: 1, maxWidth: 1600, margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24, borderBottom: '1px solid var(--border-color)', paddingBottom: 16 }}>

@@ -5,6 +5,7 @@ import NotificationDropdown from '../components/NotificationDropdown';
 import { adminGetUsers, adminGetAnalyses, adminGetAnalytics, adminUpdateUser, adminDeleteUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../hooks/useNotifications';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function AdminPage() {
   const [users, setUsers] = useState([]);
@@ -15,7 +16,7 @@ export default function AdminPage() {
   
   // Edit User State
   const [editingUser, setEditingUser] = useState(null);
-  const [editForm, setEditForm] = useState({ firstName: '', lastName: '', role: '' });
+  const [editForm, setEditForm] = useState({ firstName: '', lastName: '', role: '', newPassword: '' });
   
   // Search State
   const [searchQuery, setSearchQuery] = useState('');
@@ -93,7 +94,7 @@ export default function AdminPage() {
 
   const handleEditClick = (u) => {
     setEditingUser(u);
-    setEditForm({ firstName: u.firstName || '', lastName: u.lastName || '', role: u.role || 'student' });
+    setEditForm({ firstName: u.firstName || '', lastName: u.lastName || '', role: u.role || 'student', newPassword: '' });
   };
 
   const handleSaveEdit = async () => {
@@ -145,10 +146,7 @@ export default function AdminPage() {
               />
             </div>
             <NotificationDropdown />
-            <div onClick={toggleTheme} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card)', border: '1px solid var(--card-border)', padding: '10px 16px', borderRadius: 11, fontSize: 13, color: 'var(--text-dim)', cursor: 'pointer' }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-              <span>{isDark ? 'Dark Mode' : 'Light Mode'}</span>
-            </div>
+            <ThemeToggle />
           </div>
         </div>
 
@@ -533,6 +531,15 @@ export default function AdminPage() {
                 <option value="student">Student</option>
                 <option value="viewer">Viewer</option>
               </select>
+
+              <div style={{ background: 'rgba(255, 107, 107, 0.05)', padding: 14, borderRadius: 9, border: '1px solid rgba(255, 107, 107, 0.2)', marginBottom: 24 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--red)', fontWeight: 600, marginBottom: 8 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  Manual Password Override
+                </label>
+                <input type="password" placeholder="Leave blank to keep unchanged" value={editForm.newPassword} onChange={e => setEditForm({ ...editForm, newPassword: e.target.value })} style={{ width: '100%', padding: '10px 14px', borderRadius: 9, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255, 107, 107, 0.3)', color: 'var(--text)', fontSize: 13 }} />
+                <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 8 }}>Forcefully change this user's password. They will not be notified.</div>
+              </div>
 
               <div style={{ display: 'flex', gap: 12 }}>
                 <button onClick={() => setEditingUser(null)} style={{ flex: 1, padding: '10px', borderRadius: 9, background: 'rgba(255,255,255,0.05)', border: 'none', color: 'var(--text)', cursor: 'pointer' }}>Cancel</button>
