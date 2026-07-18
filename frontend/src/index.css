@@ -204,6 +204,60 @@ img {
   font-size: 0.9rem;
 }
 
+/* Beautiful Animated Loader */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-deep);
+  z-index: 100;
+  gap: 24px;
+}
+
+.loader {
+  width: 60px;
+  height: 60px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader::before, .loader::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid transparent;
+}
+
+.loader::before {
+  border-top-color: var(--cyan);
+  border-bottom-color: var(--blue);
+  animation: spin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+}
+
+.loader::after {
+  border-left-color: var(--purple);
+  border-right-color: var(--green);
+  animation: spin 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite reverse;
+  inset: 8px;
+}
+
+.loading-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, var(--cyan), var(--blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 /* Global Responsive Adjustments for Layout Grid */
 @media (max-width: 900px) {
   .layout {
