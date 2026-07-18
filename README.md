@@ -1,46 +1,52 @@
-# Vision-Based Deep Learning Framework for Coral Reef Health Mapping
+<div align="center">
+  <h1>🌊 CoralAI: Deep Learning Framework for Coral Reef Health Mapping</h1>
+  <p><strong>An AI-powered system that detects, segments, classifies, and maps coral reef health from underwater images and drone footage.</strong></p>
+  <p><i>SPPU BE 2019 Pattern — Final Year Engineering Project</i></p>
+</div>
 
-**SPPU BE 2019 Pattern — Final Year Engineering Project**
+<br />
 
-An AI-powered system that detects, segments, classifies, and maps coral reef health from underwater images and drone footage.
+<div align="center">
+  <img src="docs/diagrams/system_architecture.png" alt="System Architecture" width="800" />
+</div>
 
----
+<br />
 
-## Architecture Overview
+## 🚨 Problem Statement
+Coral reefs are among the most diverse ecosystems on the planet but are under severe threat from climate change, ocean acidification, and human activities. Rapid and widespread coral bleaching events are difficult to monitor manually. Marine biologists face challenges in processing vast amounts of underwater imagery to accurately quantify coral health, leading to delayed conservation efforts and inaccurate mapping.
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        React Frontend (Vite)                        │
-│  Auth │ Dashboard │ Upload │ Live Inference │ Map │ Admin Panel     │
-└──────────────────────────────┬──────────────────────────────────────┘
-                               │ REST API (HTTPS)
-┌──────────────────────────────▼──────────────────────────────────────┐
-│                     FastAPI Backend (Python)                        │
-│  Auth Middleware │ Inference │ Reports │ Admin │ CSV Export         │
-└──────┬──────────────────┬──────────────────┬────────────────────────┘
-       │                  │                  │
-┌──────▼──────┐   ┌───────▼───────┐   ┌───────▼────────┐
-│  Firebase   │   │  ML Pipeline  │   │  PDF + QR Gen  │
-│ Auth/FStore │   │ YOLO/U-Net/EN │   │  ReportLab     │
-└─────────────┘   └───────────────┘   └────────────────┘
-```
+## 📉 Existing Solutions vs. Limitations
+- **Manual Annotation:** Highly accurate but extremely slow, labor-intensive, and fundamentally unscalable for monitoring large geographical areas.
+- **Traditional Machine Learning:** Relies on hand-crafted features which struggle to generalize given the complex, low-contrast, and color-distorted nature of underwater environments.
+- **Basic Image Classification CNNs:** Often provide only image-level classification (e.g., "This image contains bleached coral") without providing precise pixel-level area quantification, which is essential for biological assessments.
 
-### Module Breakdown
+## 🚀 Our Solution & Approach
+CoralAI addresses these limitations by utilizing a comprehensive **Vision-Based Deep Learning Framework**:
+1. **Semantic Segmentation:** We deploy state-of-the-art architectures (like U-Net and DeepLabV3+) to classify every individual pixel. This provides precise area coverage percentages for Healthy Coral, Bleached Coral, Dead Coral, and Algae.
+2. **End-to-End Pipeline:** From an intuitive React frontend to a high-performance FastAPI backend, users can seamlessly upload images, view real-time processing, and generate detailed PDF reports.
+3. **Automated Pre-processing:** Computer vision techniques (via OpenCV) are utilized to automatically correct the blue/green color cast typical in underwater photography, significantly improving the model's accuracy.
 
-| Folder | Purpose |
-|--------|---------|
-| `ml/` | Dataset download, training (transfer learning), evaluation, inference |
-| `backend/` | FastAPI REST API, Firebase integration, PDF reports |
-| `frontend/` | React SPA with Leaflet maps, glassmorphism UI |
-| `.github/` | CI/CD with GitHub Actions |
-| `firestore.rules` | Secure Firebase database rules with RBAC |
+<br />
 
----
+<div align="center">
+  <img src="docs/diagrams/algorithm_flowchart.png" alt="Algorithm Flowchart" width="600" />
+</div>
 
-## Quick Start (24-Hour Training Path)
+<br />
+
+## 🛠️ Architecture Overview
+
+The system is built on a modern, decoupled technology stack:
+- **Frontend:** React (Vite) featuring a glassmorphism UI, Context API for state management, and Leaflet for geospatial mapping.
+- **Backend:** FastAPI (Python) for asynchronous, high-performance REST APIs.
+- **Database & Auth:** Firebase Authentication and Firestore (NoSQL) secured tightly with Role-Based Access Control (RBAC).
+- **ML Pipeline:** PyTorch/TensorFlow models optimized for rapid inference and background processing.
+
+<br />
+
+## 🚀 Quick Start (24-Hour Training Path)
 
 ### 1. Environment Setup
-
 ```bash
 # Copy and fill environment variables
 cp .env.production.example .env.production
@@ -48,112 +54,61 @@ cp .env.production.example .env.production
 ```
 
 ### 2. ML Training (Transfer Learning — ~30 min)
-
 ```bash
 cd ml
 pip install -r requirements.txt
 python download_dataset.py      # Downloads lightweight subset (~50 MB)
-python train_all.py               # Fine-tunes YOLO + DeepLabV3+ + EfficientNet (3 epochs each)
-python evaluate.py                # Confusion matrix, IoU, F1-score
+python train_all.py             # Fine-tunes YOLO + DeepLabV3+ + EfficientNet
+python evaluate.py              # Confusion matrix, IoU, F1-score
 ```
 
-### 3. Backend
-
+### 3. Backend Setup
 ```bash
 cd backend
 pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
 ```
 
-### 4. Frontend
-
+### 4. Frontend Setup
 ```bash
 cd frontend
 npm install
-npm run build    # Production build
-npm run preview  # Or deploy dist/ to Render/Vercel
+npm run dev
 ```
 
-### 5. Docker (Full Stack)
+<br />
 
-```bash
-docker-compose up --build
-```
-
----
-
-## Firebase Setup
-
-1. Create Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
-2. Enable **Authentication** → Email/Password + Google
-3. Create **Firestore** database
-4. Deploy rules: `firebase deploy --only firestore:rules`
-5. Generate service account JSON → save as `backend/firebase-service-account.json`
-6. Add Web App config to `.env.production` (VITE_FIREBASE_* vars)
+## 🔐 Firebase Setup
+1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com).
+2. Enable **Authentication** (Email/Password & Google) and **Firestore**.
+3. Generate a service account JSON and save it as `backend/firebase-service-account.json`.
+4. Deploy security rules: `firebase deploy --only firestore:rules`
+5. Update `.env.production` with your Web App config.
 
 ### Admin Seed Account
-
-On first startup, the backend seeds:
+On first startup, the backend seeds an admin account:
 - **Email:** shivashankrmali7@gmail.com
 - **Password:** Shivmali@123
 - **Role:** admin
 
----
+<br />
 
-## API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/auth/register` | User registration |
-| POST | `/api/v1/auth/login` | Email/password login |
-| POST | `/api/v1/inference/upload` | Upload image/video |
-| POST | `/api/v1/inference/live` | Live camera inference |
-| GET | `/api/v1/reports/{id}` | Get report |
-| PUT | `/api/v1/reports/{id}/override` | Admin override report |
-| GET | `/api/v1/reports/{id}/pdf` | Download PDF |
-| GET | `/api/v1/reports/{id}/csv` | Export CSV |
-| GET | `/api/v1/dashboard/stats` | User dashboard stats |
-| GET | `/api/v1/admin/users` | Admin: list all users |
-| GET | `/api/v1/admin/analytics` | Admin: system analytics |
-| GET | `/api/v1/public/report/{qr_token}` | Public QR page data |
-
----
-
-## Deployment (Render / AWS)
-
-See [DEPLOYMENT.md](DEPLOYMENT.md) for step-by-step Render and AWS ECS deployment.
-
----
-
-## Model Performance Targets
-
+## 📈 Model Performance Targets
 | Model | Task | Target Metric |
 |-------|------|---------------|
 | YOLOv11n | Object Detection | mAP@0.5 > 0.85 |
-| DeepLabV3+ (ResNet50) | Segmentation | IoU > 0.80 |
+| DeepLabV3+ (ResNet50)| Segmentation | IoU > 0.80 |
 | EfficientNet-B0 | Classification | F1 > 0.90 |
 
-Transfer learning on pre-trained weights achieves these in 3 epochs on the lightweight subset.
+<br />
 
----
+## 🔮 Future Scope
+- **Multi-spectral satellite integration** (Sentinel-2) for macro-level mapping.
+- **Temporal bleaching trend prediction** using LSTM networks.
+- **Edge deployment** on NVIDIA Jetson for real-time field use on boats.
+- **3D reef reconstruction** from stereo video footage.
 
-## Future Scope
+<br />
 
-- Multi-spectral satellite integration (Sentinel-2)
-- Temporal bleaching trend prediction (LSTM)
-- Edge deployment on NVIDIA Jetson for field use
-- Federated learning across reef monitoring organizations
-- 3D reef reconstruction from stereo video
-
-## Limitations
-
-- Training subset is lightweight for 24-hour deadline; full NOAA/CoralNet datasets improve accuracy
-- Underwater color correction is heuristic; physics-based models would improve generalization
-- GPS tagging requires EXIF metadata or manual pin placement on map
-- Real-time video at 4K requires GPU inference server
-
----
-
-## License
-
+## 📄 License
 MIT — Academic use for SPPU Final Year Project submission.
