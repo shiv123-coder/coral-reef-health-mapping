@@ -13,10 +13,13 @@ export default function Sidebar() {
         .nav a:hover { background: rgba(255,255,255,0.03); color: var(--text); }
         .nav a.active { background: linear-gradient(90deg, rgba(59,158,255,0.15), rgba(79,214,232,0.05)); color: var(--cyan); border: 1px solid rgba(79,214,232,0.2); }
       `}</style>
-      <div className="sb-logo" style={{ marginBottom: 40, paddingLeft: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 12 }}><path d="M12 2C9 2 7 5 7 8c0 2 1 3 1 5 0 3-2 4-2 7 0 1 1 2 2 2s2-1 2-2c0-2 1-3 2-3s2 1 2 3c0 1 1 2 2 2s2-1 2-2c0-3-2-4-2-7 0-2 1-3 1-5 0-3-2-6-5-6z" fill="url(#sg)"/><defs><linearGradient id="sg" x1="7" y1="2" x2="17" y2="22"><stop stopColor="#4fd6e8"/><stop offset="1" stopColor="#3b7dff"/></linearGradient></defs></svg>
-          <div><h1 style={{ fontSize: 18, fontWeight: 800 }}>Coral<span style={{ background: 'linear-gradient(90deg,#7dd8ff,#4fd6e8)', WebkitBackgroundClip: 'text', color: 'transparent' }}>AI</span></h1><div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>Coral Reef Health Analyzer</div></div>
+      
+      {/* Brand / Logo */}
+      <div className="sb-logo" style={{ marginBottom: 40, paddingLeft: 10, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 2C9 2 7 5 7 8c0 2 1 3 1 5 0 3-2 4-2 7 0 1 1 2 2 2s2-1 2-2c0-2 1-3 2-3s2 1 2 3c0 1 1 2 2 2s2-1 2-2c0-3-2-4-2-7 0-2 1-3 1-5 0-3-2-6-5-6z" fill="url(#sg)"/><defs><linearGradient id="sg" x1="7" y1="2" x2="17" y2="22"><stop stopColor="#4fd6e8"/><stop offset="1" stopColor="#3b7dff"/></linearGradient></defs></svg>
+        <div style={{ flex: 1 }}>
+          <h1 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Coral<span style={{ background: 'linear-gradient(90deg,#7dd8ff,#4fd6e8)', WebkitBackgroundClip: 'text', color: 'transparent' }}>AI</span></h1>
+          <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1, whiteSpace: 'nowrap' }}>Reef Health Analyzer</div>
         </div>
       </div>
 
@@ -49,12 +52,16 @@ export default function Sidebar() {
         )}
       </nav>
 
-      <div style={{ padding: '0 4px 20px', display: 'flex', justifyContent: 'center' }}>
+      {/* Theme Toggle centered above user profile */}
+      <div style={{ padding: '20px 4px', display: 'flex', justifyContent: 'center' }}>
         <ThemeToggle />
       </div>
 
-      <div className="user-card" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.02)', margin: '0 4px', border: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ width: 36, height: 36, borderRadius: '50%', flex: 'none', background: 'linear-gradient(135deg, #3b7dff, #4fd6e8)' }}></div>
+      {/* User Profile Card */}
+      <div className="user-card" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.02)', margin: '0 4px', border: '1px solid rgba(255,255,255,0.05)', position: 'relative', zIndex: 2 }}>
+        <div style={{ width: 36, height: 36, borderRadius: '50%', flex: 'none', background: 'linear-gradient(135deg, #3b7dff, #4fd6e8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold' }}>
+          {user?.email?.[0].toUpperCase() || 'U'}
+        </div>
         <div style={{ flex: 1, overflow: 'hidden' }}>
           <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.displayName || 'Coral User'}</div>
           <div style={{ fontSize: 11, color: 'var(--text-faint)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</div>
@@ -69,7 +76,7 @@ export default function Sidebar() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
         </button>
       </div>
-      <div style={{ position: 'absolute', bottom: -10, right: -20, opacity: .12, fontSize: 130, pointerEvents: 'none', transform: 'rotate(-8deg)' }}>🐢</div>
+
     </aside>
   );
 }

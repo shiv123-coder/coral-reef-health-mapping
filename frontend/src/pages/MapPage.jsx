@@ -67,9 +67,9 @@ export default function MapPage() {
         {loading ? (
           <LoadingSpinner text="Loading spatial data..." />
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24, height: '70vh', minHeight: 600 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 24, height: '75vh', minHeight: 600 }}>
             {/* GIS Control Panel */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto' }}>
               <GlassCard style={{ padding: '20px' }}>
                 <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Filter size={18} /> Spatial Filters
@@ -137,12 +137,13 @@ export default function MapPage() {
             </div>
 
             {/* Main Map Area */}
-            <GlassCard style={{ padding: 0, overflow: 'hidden', position: 'relative' }}>
-              <MapContainer 
-                center={mapped[0] ? [mapped[0].latitude, mapped[0].longitude] : DEFAULT_CENTER} 
-                zoom={mapped.length ? 8 : 5} 
-                style={{ height: '100%', width: '100%', background: '#0f172a' }}
-              >
+            <GlassCard style={{ padding: 0, overflow: 'hidden', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ flex: 1, position: 'relative', width: '100%' }}>
+                <MapContainer 
+                  center={mapped[0] ? [mapped[0].latitude, mapped[0].longitude] : DEFAULT_CENTER} 
+                  zoom={mapped.length ? 8 : 5} 
+                  style={{ position: 'absolute', inset: 0, background: '#0f172a', zIndex: 1 }}
+                >
                 <LayersControl position="topright">
                   <LayersControl.BaseLayer checked name="Satellite Imagery (Esri)">
                     <TileLayer
@@ -217,6 +218,7 @@ export default function MapPage() {
                   </CircleMarker>
                 ))}
               </MapContainer>
+              </div>
             </GlassCard>
           </div>
         )}
