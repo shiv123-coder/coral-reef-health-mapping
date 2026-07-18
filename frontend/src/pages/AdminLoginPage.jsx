@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword, signInWithPopup, fetchSignInMethodsForEmail } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -58,15 +58,18 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      const { getMe } = await import('../services/api');
-      const profile = await getMe();
-      const userEmail = auth.currentUser?.email || email;
-      if (profile?.role === 'admin' || userEmail === 'shivashankrmali7@gmail.com' || userEmail.includes('admin')) {
-        setError('Admin accounts must use the Admin Portal.');
-        await auth.signOut();
+      if (userEmail === 'shivashankrmali7@gmail.com' || userEmail.includes('admin')) {
+        navigate('/admin');
         return;
       }
-      navigate('/dashboard');
+      const { getMe } = await import('../services/api');
+      const profile = await getMe();
+      if (profile?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        setError('Unauthorized: You are not an administrator.');
+        await auth.signOut();
+      }
     } catch (err) {
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
         try {
@@ -95,15 +98,19 @@ export default function LoginPage() {
     setError('');
     try {
       await signInWithPopup(auth, googleProvider);
-      const { getMe } = await import('../services/api');
-      const profile = await getMe();
       const userEmail = auth.currentUser?.email;
-      if (profile?.role === 'admin' || userEmail === 'shivashankrmali7@gmail.com' || userEmail?.includes('admin')) {
-        setError('Admin accounts must use the Admin Portal.');
-        await auth.signOut();
+      if (userEmail === 'shivashankrmali7@gmail.com' || userEmail?.includes('admin')) {
+        navigate('/admin');
         return;
       }
-      navigate('/dashboard');
+      const { getMe } = await import('../services/api');
+      const profile = await getMe();
+      if (profile?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        setError('Unauthorized: You are not an administrator.');
+        await auth.signOut();
+      }
     } catch (err) {
       setError(err.message);
     }
@@ -130,8 +137,8 @@ export default function LoginPage() {
           <div className="brand" style={{ position: 'absolute', top: 34, left: 34, display: 'flex', alignItems: 'center', gap: 12, zIndex: 3 }}>
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M12 2C9 2 7 5 7 8c0 2 1 3 1 5 0 3-2 4-2 7 0 1 1 2 2 2s2-1 2-2c0-2 1-3 2-3s2 1 2 3c0 1 1 2 2 2s2-1 2-2c0-3-2-4-2-7 0-2 1-3 1-5 0-3-2-6-5-6z" fill="url(#lg1)"/><defs><linearGradient id="lg1" x1="7" y1="2" x2="17" y2="22"><stop stopColor="#4fd6e8"/><stop offset="1" stopColor="#3b7dff"/></linearGradient></defs></svg>
             <div>
-              <h1 style={{ fontSize: 24, fontWeight: 800 }}>Coral<span style={{ background: 'linear-gradient(90deg,#7dd8ff,#4fd6e8)', WebkitBackgroundClip: 'text', color: 'transparent' }}>AI</span></h1>
-              <div style={{ fontSize: 13, color: 'var(--text-dim)', marginTop: 2 }}>Coral Reef Health Analyzer</div>
+              <h1 style={{ fontSize: 24, fontWeight: 800 }}>Coral<span style={{ background: 'linear-gradient(90deg,#ff6b6b,#ff9c9c)', WebkitBackgroundClip: 'text', color: 'transparent' }}>AI</span></h1>
+              <div style={{ fontSize: 13, color: 'var(--text-dim)', marginTop: 2 }}>Admin Portal</div>
             </div>
           </div>
 
@@ -194,7 +201,7 @@ export default function LoginPage() {
             <h2 style={{ fontSize: 26, textAlign: 'center', fontWeight: 800, marginBottom: 8 }}>
               {new Date().getHours() < 12 ? 'Good Morning' : new Date().getHours() < 18 ? 'Good Afternoon' : 'Good Evening'} <span style={{ background: 'linear-gradient(90deg,#5db8ff,#4fd6e8)', WebkitBackgroundClip: 'text', color: 'transparent' }}>👋</span>
             </h2>
-            <p style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: 14, marginBottom: 30 }}>Sign in to continue to your CoralAI account</p>
+            <p style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: 14, marginBottom: 30 }}>Sign in to the Admin Dashboard</p>
 
             {error && <div className="auth-error">{error}</div>}
 
@@ -246,10 +253,7 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <p style={{ fontSize: 13.5, color: 'var(--text-dim)', margin: 0 }}>Don&apos;t have an account? <Link to="/signup" style={{ color: 'var(--cyan)', fontWeight: 600 }}>Create Account</Link></p>
-              <Link to="/admin/login" style={{ fontSize: 12.5, color: 'var(--text-faint)' }}>Admin Login</Link>
-            </div>
+            <p style={{ textAlign: 'center', fontSize: 13.5, color: 'var(--text-dim)' }}>Regular user? <Link to="/login" style={{ color: 'var(--cyan)', fontWeight: 600 }}>Go to User Login</Link></p>
           </form>
         </div>
       </div>
