@@ -16,7 +16,7 @@ const PROTECTED_AREAS = [
 
 function riskColor(level) {
   const map = { Critical: '#ef4444', High: '#f97316', Moderate: '#f59e0b', Low: '#14b8a6', Minimal: '#22c55e' };
-  return map[level] || '#64748b';
+  return map[level] || 'var(--text-faint)';
 }
 
 export default function MapPage() {
@@ -73,12 +73,12 @@ export default function MapPage() {
             {/* GIS Control Panel */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', paddingRight: 8 }}>
               
-              <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, padding: 20 }}>
-                <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, color: '#f8fafc' }}>
+              <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, padding: 20 }}>
+                <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text)' }}>
                   <Filter size={16} color="#94a3b8" /> Spatial Filters
                 </h3>
                 
-                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>Risk Severity</div>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>Risk Severity</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {riskLevels.map(level => (
                     <button
@@ -89,7 +89,7 @@ export default function MapPage() {
                         padding: '10px 14px',
                         background: activeFilter === level ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
                         border: `1px solid ${activeFilter === level ? 'rgba(59, 130, 246, 0.3)' : 'transparent'}`,
-                        color: activeFilter === level ? '#3b82f6' : '#cbd5e1',
+                        color: activeFilter === level ? '#3b82f6' : 'var(--text-dim)',
                         borderRadius: 8,
                         textAlign: 'left',
                         cursor: 'pointer',
@@ -97,7 +97,7 @@ export default function MapPage() {
                         fontWeight: 500,
                         transition: 'all 0.2s'
                       }}
-                      onMouseOver={e => { if (activeFilter !== level) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                      onMouseOver={e => { if (activeFilter !== level) e.currentTarget.style.background = 'var(--bg-hover)'; }}
                       onMouseOut={e => { if (activeFilter !== level) e.currentTarget.style.background = 'transparent'; }}
                     >
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: level === 'All' ? '#3b82f6' : riskColor(level), boxShadow: activeFilter === level ? `0 0 8px ${level === 'All' ? '#3b82f6' : riskColor(level)}` : 'none' }}></div>
@@ -107,21 +107,21 @@ export default function MapPage() {
                 </div>
               </div>
 
-              <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, padding: 20, flex: 1 }}>
-                <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, color: '#f8fafc' }}>
+              <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, padding: 20, flex: 1 }}>
+                <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text)' }}>
                   <Layers size={16} color="#94a3b8" /> Layer Intelligence
                 </h3>
-                <div style={{ fontSize: '12px', color: '#94a3b8', lineHeight: 1.5 }}>
-                  <p style={{ marginBottom: 16 }}>Displaying <strong style={{ color: '#f8fafc' }}>{mapped.length}</strong> active telemetry points matching current spatial filters.</p>
+                <div style={{ fontSize: '12px', color: 'var(--text-dim)', lineHeight: 1.5 }}>
+                  <p style={{ marginBottom: 16 }}>Displaying <strong style={{ color: 'var(--text)' }}>{mapped.length}</strong> active telemetry points matching current spatial filters.</p>
                   
                   <div 
                     onClick={() => setShowHotspots(!showHotspots)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: showHotspots ? 'rgba(245, 158, 11, 0.1)' : 'rgba(30, 41, 59, 0.4)', border: `1px solid ${showHotspots ? 'rgba(245, 158, 11, 0.3)' : '#1e293b'}`, borderRadius: 8, cursor: 'pointer', transition: 'all 0.2s', marginBottom: 10 }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: showHotspots ? 'rgba(245, 158, 11, 0.1)' : 'rgba(30, 41, 59, 0.4)', border: `1px solid ${showHotspots ? 'rgba(245, 158, 11, 0.3)' : 'var(--input-bg)'}`, borderRadius: 8, cursor: 'pointer', transition: 'all 0.2s', marginBottom: 10 }}
                   >
-                    <AlertTriangle size={20} color={showHotspots ? '#f59e0b' : '#64748b'} />
+                    <AlertTriangle size={20} color={showHotspots ? '#f59e0b' : 'var(--text-faint)'} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, color: showHotspots ? '#f59e0b' : '#cbd5e1', fontSize: '13px' }}>Bleaching Hotspots</div>
-                      <div style={{ fontSize: '11px', color: '#64748b', marginTop: 2 }}>Auto-detected via AI consensus</div>
+                      <div style={{ fontWeight: 600, color: showHotspots ? '#f59e0b' : 'var(--text-dim)', fontSize: '13px' }}>Bleaching Hotspots</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginTop: 2 }}>Auto-detected via AI consensus</div>
                     </div>
                     <div style={{ width: 16, height: 16, borderRadius: 4, border: `1px solid ${showHotspots ? '#f59e0b' : '#475569'}`, background: showHotspots ? '#f59e0b' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {showHotspots && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>}
@@ -130,12 +130,12 @@ export default function MapPage() {
                   
                   <div 
                     onClick={() => setShowProtectedAreas(!showProtectedAreas)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: showProtectedAreas ? 'rgba(16, 185, 129, 0.1)' : 'rgba(30, 41, 59, 0.4)', border: `1px solid ${showProtectedAreas ? 'rgba(16, 185, 129, 0.3)' : '#1e293b'}`, borderRadius: 8, cursor: 'pointer', transition: 'all 0.2s' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: showProtectedAreas ? 'rgba(16, 185, 129, 0.1)' : 'rgba(30, 41, 59, 0.4)', border: `1px solid ${showProtectedAreas ? 'rgba(16, 185, 129, 0.3)' : 'var(--input-bg)'}`, borderRadius: 8, cursor: 'pointer', transition: 'all 0.2s' }}
                   >
-                    <Droplet size={20} color={showProtectedAreas ? '#10b981' : '#64748b'} />
+                    <Droplet size={20} color={showProtectedAreas ? '#10b981' : 'var(--text-faint)'} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, color: showProtectedAreas ? '#10b981' : '#cbd5e1', fontSize: '13px' }}>Marine Protected Areas</div>
-                      <div style={{ fontSize: '11px', color: '#64748b', marginTop: 2 }}>Sanctuary zones mapped</div>
+                      <div style={{ fontWeight: 600, color: showProtectedAreas ? '#10b981' : 'var(--text-dim)', fontSize: '13px' }}>Marine Protected Areas</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginTop: 2 }}>Sanctuary zones mapped</div>
                     </div>
                     <div style={{ width: 16, height: 16, borderRadius: 4, border: `1px solid ${showProtectedAreas ? '#10b981' : '#475569'}`, background: showProtectedAreas ? '#10b981' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {showProtectedAreas && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>}
@@ -146,12 +146,12 @@ export default function MapPage() {
             </div>
 
             {/* Main Map Area */}
-            <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, overflow: 'hidden', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, overflow: 'hidden', position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
               <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%' }}>
                 <MapContainer 
                   center={mapped[0] ? [mapped[0].latitude, mapped[0].longitude] : DEFAULT_CENTER} 
                   zoom={mapped.length ? 8 : 5} 
-                  style={{ position: 'absolute', inset: 0, background: '#0f172a', zIndex: 1 }}
+                  style={{ position: 'absolute', inset: 0, background: 'var(--card)', zIndex: 1 }}
                 >
                 <LayersControl position="topright">
                   <LayersControl.BaseLayer checked name="Satellite Imagery (Esri)">
@@ -187,7 +187,7 @@ export default function MapPage() {
                   >
                     <Popup>
                       <strong style={{ color: 'var(--success)' }}>{pa.name}</strong>
-                      <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Restricted human activity zone.</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-faint)' }}>Restricted human activity zone.</div>
                     </Popup>
                   </Rectangle>
                 ))}
@@ -210,16 +210,16 @@ export default function MapPage() {
                         <strong style={{ fontSize: '1rem', display: 'block', marginBottom: 8 }}>{a.fileName}</strong>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8, marginBottom: 12 }}>
                           <div>
-                            <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase' }}>Healthy</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase' }}>Healthy</div>
                             <div style={{ color: '#22c55e', fontWeight: 700 }}>{a.healthyCoralPct}%</div>
                           </div>
                           <div>
-                            <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase' }}>Bleached</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase' }}>Bleached</div>
                             <div style={{ color: '#f97316', fontWeight: 700 }}>{a.bleachedCoralPct}%</div>
                           </div>
                         </div>
                         <RiskBadge level={a.riskLevel} />
-                        <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: 12, fontFamily: 'monospace' }}>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', marginTop: 12, fontFamily: 'monospace' }}>
                           COORD: {a.latitude.toFixed(4)}, {a.longitude.toFixed(4)}
                         </div>
                       </div>

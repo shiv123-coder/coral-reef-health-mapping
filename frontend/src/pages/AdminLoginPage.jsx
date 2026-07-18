@@ -43,10 +43,10 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', width: '100%', fontFamily: '"Inter", "Segoe UI", sans-serif', background: '#0f172a', color: '#f8fafc' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', width: '100%', fontFamily: '"Inter", "Segoe UI", sans-serif', background: 'var(--bg-deep)', color: 'var(--text)' }}>
       
       {/* Left Side - Brand Branding */}
-      <div style={{ flex: 1, display: 'none', '@media (min-width: 768px)': { display: 'flex' }, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: 'linear-gradient(135deg, #020617 0%, #0f172a 100%)', borderRight: '1px solid #1e293b', padding: 40 }}>
+      <div style={{ flex: 1, display: 'none', '@media (min-width: 768px)': { display: 'flex' }, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: 'var(--bg-deep)', borderRight: '1px solid var(--card-border)', padding: 40 }}>
         <div style={{ maxWidth: 400 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
             <div style={{ width: 40, height: 40, background: '#ef4444', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -54,14 +54,14 @@ export default function AdminLoginPage() {
             </div>
             <h1 style={{ fontSize: 32, fontWeight: 800, margin: 0, letterSpacing: '-0.5px' }}>CoralAI <span style={{ color: '#ef4444' }}>Admin</span></h1>
           </div>
-          <p style={{ color: '#94a3b8', fontSize: 16, lineHeight: 1.6 }}>
+          <p style={{ color: 'var(--text-dim)', fontSize: 16, lineHeight: 1.6 }}>
             Enterprise dashboard for system administration, access management, and global analytics. Authorized personnel only.
           </p>
         </div>
       </div>
 
       {/* Right Side - Login Form */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: 40, background: '#0f172a' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: 40, background: 'var(--card)' }}>
         <div style={{ width: '100%', maxWidth: 380 }}>
           
           <div style={{ marginBottom: 40, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -70,7 +70,7 @@ export default function AdminLoginPage() {
               <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>Secure Portal</span>
             </div>
             <h2 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>Sign in to Admin</h2>
-            <p style={{ color: '#94a3b8', margin: 0, fontSize: 14 }}>Enter your administrator credentials to proceed.</p>
+            <p style={{ color: 'var(--text-dim)', margin: 0, fontSize: 14 }}>Enter your administrator credentials to proceed.</p>
           </div>
 
           {error && (
@@ -82,33 +82,33 @@ export default function AdminLoginPage() {
 
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#cbd5e1', marginBottom: 6 }}>Admin Email</label>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-dim)', marginBottom: 6 }}>Admin Email</label>
               <input 
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@coral.ai"
-                style={{ width: '100%', padding: '12px 14px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#f8fafc', fontSize: 14, outline: 'none', transition: 'border-color 0.2s' }}
+                style={{ width: '100%', padding: '12px 14px', background: 'var(--input-bg)', border: '1px solid var(--input-border)', borderRadius: 6, color: 'var(--text)', fontSize: 14, outline: 'none', transition: 'border-color 0.2s' }}
                 onFocus={(e) => e.target.style.borderColor = '#ef4444'}
                 onBlur={(e) => e.target.style.borderColor = '#334155'}
               />
             </div>
             
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#cbd5e1', marginBottom: 6 }}>Master Password</label>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-dim)', marginBottom: 6 }}>Master Password</label>
               <input 
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                style={{ width: '100%', padding: '12px 14px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#f8fafc', fontSize: 14, outline: 'none', transition: 'border-color 0.2s' }}
+                style={{ width: '100%', padding: '12px 14px', background: 'var(--input-bg)', border: '1px solid var(--input-border)', borderRadius: 6, color: 'var(--text)', fontSize: 14, outline: 'none', transition: 'border-color 0.2s' }}
                 onFocus={(e) => e.target.style.borderColor = '#ef4444'}
                 onBlur={(e) => e.target.style.borderColor = '#334155'}
               />
             </div>
 
             <button type="submit" disabled={loading} style={{ 
-              width: '100%', padding: '12px', background: '#ef4444', color: '#ffffff', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 10, transition: 'background 0.2s', opacity: loading ? 0.7 : 1
+              width: '100%', padding: '12px', background: '#ef4444', color: 'var(--text)', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 10, transition: 'background 0.2s', opacity: loading ? 0.7 : 1
             }}
             onMouseOver={(e) => !loading && (e.target.style.background = '#dc2626')}
             onMouseOut={(e) => !loading && (e.target.style.background = '#ef4444')}
@@ -117,8 +117,8 @@ export default function AdminLoginPage() {
             </button>
           </form>
 
-          <div style={{ marginTop: 40, paddingTop: 24, borderTop: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Link to="/login" style={{ color: '#94a3b8', fontSize: 13, textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={(e) => e.target.style.color = '#f8fafc'} onMouseOut={(e) => e.target.style.color = '#94a3b8'}>
+          <div style={{ marginTop: 40, paddingTop: 24, borderTop: '1px solid var(--card-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Link to="/login" style={{ color: 'var(--text-dim)', fontSize: 13, textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={(e) => e.target.style.color = 'var(--text)'} onMouseOut={(e) => e.target.style.color = 'var(--text-dim)'}>
               &larr; Return to User Portal
             </Link>
           </div>

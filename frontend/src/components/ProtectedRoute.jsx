@@ -3,22 +3,26 @@ import { useAuth } from '../context/AuthContext';
 import { LoadingSpinner } from './UI';
 
 export function ProtectedRoute({ children, adminOnly = false }) {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, isAdmin, isOffline } = useAuth();
 
   if (loading) return <LoadingSpinner text="Loading session..." />;
+  if (isOffline && !isAdmin) return <Navigate to="/maintenance" replace />;
   if (!user) return <Navigate to="/login" replace />;
-  if (adminOnly && profile?.role !== 'admin' && user?.email !== 'shivashankrmali7@gmail.com' && !user?.email?.includes('admin')) return <Navigate to="/dashboard" replace />;
+  if (adminOnly && !isAdmin) return <Navigate to="/dashboard" replace />;
 
   return children;
 }
 
 export function PublicRoute({ children }) {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, isAdmin, isOffline } = useAuth();
   if (loading) return <LoadingSpinner />;
   
   if (user) {
-    if (profile?.role === 'admin' || user?.email === 'shivashankrmali7@gmail.com' || user?.email?.includes('admin')) {
+    if (isAdmin) {
       return <Navigate to="/admin" replace />;
+    }
+    if (isOffline) {
+      return <Navigate to="/maintenance" replace />;
     }
     return <Navigate to="/dashboard" replace />;
   }
@@ -27,12 +31,15 @@ export function PublicRoute({ children }) {
 }
 
 export function RootRedirect() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, isAdmin, isOffline } = useAuth();
   if (loading) return <LoadingSpinner />;
   
   if (user) {
-    if (profile?.role === 'admin' || user?.email === 'shivashankrmali7@gmail.com' || user?.email?.includes('admin')) {
+    if (isAdmin) {
       return <Navigate to="/admin" replace />;
+    }
+    if (isOffline) {
+      return <Navigate to="/maintenance" replace />;
     }
     return <Navigate to="/dashboard" replace />;
   }

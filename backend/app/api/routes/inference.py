@@ -9,7 +9,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Request
 
 from app.config import get_settings
-from app.core.firebase import generate_qr_token, save_analysis, save_public_report, save_report, utc_now_iso
+from app.core.firebase import generate_qr_token, save_analysis, save_public_report, save_report, utc_now_iso, create_notification
 from app.core.security import get_current_user
 from app.services.inference_service import inference_service
 import cloudinary.uploader
@@ -40,6 +40,15 @@ async def upload_and_analyze(
 
     if not file.filename or not _allowed_file(file.filename):
         raise HTTPException(400, "Unsupported file type")
+
+    # Offline Mode Check
+    from app.core.firebase import init_firebase
+    db = init_firebase()
+    config_doc = db.collection("global_config").document("system").get()
+    if config_doc.exists:
+        config = config_doc.to_dict()
+        if config.get("isOffline") and user.get("role") != "admin" and "admin" not in user.get("email", "").lower():
+            raise HTTPException(503, "System is currently undergoing maintenance and offline.")
 
     analysis_id = str(uuid.uuid4())
     upload_dir = Path(settings.upload_dir) / user["uid"] / analysis_id
@@ -80,28 +89,33 @@ async def upload_and_analyze(
 
     # Cloudinary Upload
     annotated_image_url = f"/api/v1/inference/files/{analysis_id}/annotated"
+    original_file_url = f"/api/v1/inference/files/{analysis_id}/{file.filename}"
     annotated_local_path = result.get("annotated_image")
     
-    if settings.cloudinary_cloud_name and annotated_local_path and os.path.exists(annotated_local_path):
-        try:
-            upload_result = cloudinary.uploader.upload(
-                annotated_local_path,
-                folder=f"coral_reef/{user['uid']}",
-                public_id=f"{analysis_id}_annotated"
-            )
-            annotated_image_url = upload_result.get("secure_url")
-            # Store the URL instead of the local path
-            result["annotated_image"] = annotated_image_url
-            
-            # Optional: upload original file too
-            if not is_video:
-                cloudinary.uploader.upload(
-                    str(file_path),
+    if settings.cloudinary_cloud_name:
+        if annotated_local_path and os.path.exists(annotated_local_path):
+            try:
+                upload_result = cloudinary.uploader.upload(
+                    annotated_local_path,
                     folder=f"coral_reef/{user['uid']}",
-                    public_id=f"{analysis_id}_original"
+                    public_id=f"{analysis_id}_annotated"
                 )
+                annotated_image_url = upload_result.get("secure_url")
+                # Store the URL instead of the local path
+                result["annotated_image"] = annotated_image_url
+            except Exception as e:
+                print(f"Cloudinary upload failed: {e}")
+                
+        try:
+            orig_result = cloudinary.uploader.upload(
+                str(file_path),
+                folder=f"coral_reef/{user['uid']}",
+                public_id=f"{analysis_id}_original",
+                resource_type="auto"
+            )
+            original_file_url = orig_result.get("secure_url")
         except Exception as e:
-            print(f"Cloudinary upload failed: {e}")
+            print(f"Cloudinary upload for original failed: {e}")
 
     qr_token = generate_qr_token()
 
@@ -125,6 +139,7 @@ async def upload_and_analyze(
         "annotatedImagePath": result.get("annotated_image"),
         "latitude": latitude,
         "longitude": longitude,
+        "originalFileUrl": original_file_url,
         "qrToken": qr_token,
         "createdAt": utc_now_iso(),
     }
@@ -191,7 +206,7 @@ async def upload_and_analyze(
         "email": user.get("email", ""),
         "fileName": file.filename,
         "fileType": file_type,
-        "fileUrl": f"/api/v1/inference/files/{analysis_id}/{file.filename}",
+        "fileUrl": original_file_url,
         "annotatedImageUrl": annotated_image_url,
         "healthyCoralPct": analysis_record["healthyCoralPct"],
         "bleachedCoralPct": analysis_record["bleachedCoralPct"],
@@ -200,6 +215,13 @@ async def upload_and_analyze(
         "riskLevel": analysis_record["riskLevel"],
         "createdAt": analysis_record["createdAt"],
     })
+
+    create_notification(
+        user_id=user["uid"],
+        title="Analysis Complete",
+        message="Your AI coral health analysis is complete and the report is ready for download.",
+        notif_type="success"
+    )
 
     return {
         "analysisId": analysis_id,

@@ -9,6 +9,7 @@ export default function HistoryPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [comparison, setComparison] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [previewMedia, setPreviewMedia] = useState(null);
 
   useEffect(() => {
     Promise.all([getAnalysisHistory(), getComparison()])
@@ -138,6 +139,7 @@ export default function HistoryPage() {
                 <table className="data-table">
                   <thead>
                     <tr>
+                      <th>Media</th>
                       <th>File Name</th>
                       <th>Type</th>
                       <th>Healthy</th>
@@ -151,6 +153,17 @@ export default function HistoryPage() {
                   <tbody>
                     {filteredHistory.length > 0 ? filteredHistory.map((h) => (
                       <tr key={h.analysisId}>
+                        <td>
+                          {h.originalFileUrl ? (
+                            h.fileType === 'video' ? (
+                              <video src={h.originalFileUrl} style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 6, cursor: 'pointer', border: '1px solid var(--card-border)' }} onClick={() => setPreviewMedia(h)} />
+                            ) : (
+                              <img src={h.originalFileUrl} alt="Upload" style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 6, cursor: 'pointer', border: '1px solid var(--card-border)' }} onClick={() => setPreviewMedia(h)} />
+                            )
+                          ) : (
+                            <div style={{ width: 44, height: 44, background: 'var(--input-bg)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--card-border)', color: 'var(--text-faint)', fontSize: 10 }}>N/A</div>
+                          )}
+                        </td>
                         <td style={{ fontWeight: 500 }}>{h.fileName}</td>
                         <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{h.fileType}</td>
                         <td style={{ color: 'var(--success)', fontWeight: 600 }}>{h.healthyCoralPct}%</td>
@@ -178,6 +191,25 @@ export default function HistoryPage() {
           </>
         )}
       </div>
+
+      {/* Media Preview Modal */}
+      {previewMedia && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setPreviewMedia(null)}>
+          <div style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setPreviewMedia(null)} style={{ position: 'absolute', top: -40, right: 0, background: 'none', border: 'none', color: '#fff', fontSize: 32, cursor: 'pointer' }}>&times;</button>
+            {previewMedia.fileType === 'video' ? (
+              <video src={previewMedia.originalFileUrl} controls autoPlay style={{ maxWidth: '100%', maxHeight: '80vh', borderRadius: 8, boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }} />
+            ) : (
+              <img src={previewMedia.originalFileUrl} alt="Full Screen Preview" style={{ maxWidth: '100%', maxHeight: '80vh', borderRadius: 8, boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }} />
+            )}
+            {previewMedia.annotatedImagePath && (
+               <div style={{ marginTop: 16, textAlign: 'center' }}>
+                 <a href={previewMedia.annotatedImagePath} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cyan)', textDecoration: 'none', fontWeight: 600, padding: '8px 16px', background: 'rgba(79, 214, 232, 0.1)', borderRadius: 6, display: 'inline-block' }}>View AI Processed Mask</a>
+               </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

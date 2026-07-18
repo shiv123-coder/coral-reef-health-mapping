@@ -90,7 +90,7 @@ export default function DashboardPage() {
                   document.getElementById('time-filter-dropdown-dash').style.display = 'none';
                 }}
                 style={{ padding: '8px 12px', fontSize: 13, color: 'var(--text-dim)', cursor: 'pointer', borderRadius: 8 }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--text)'; }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-dim)'; }}
               >
                 {range}
@@ -168,8 +168,8 @@ export default function DashboardPage() {
             <div style={{ display: 'flex', gap: 3 }}>
               <span style={{ height: 5, flex: 1, borderRadius: 3, background: 'var(--amber)' }}></span>
               <span style={{ height: 5, flex: 1, borderRadius: 3, background: 'var(--amber)' }}></span>
-              <span style={{ height: 5, flex: 1, borderRadius: 3, background: 'rgba(255,255,255,0.08)' }}></span>
-              <span style={{ height: 5, flex: 1, borderRadius: 3, background: 'rgba(255,255,255,0.08)' }}></span>
+              <span style={{ height: 5, flex: 1, borderRadius: 3, background: 'var(--card-border)' }}></span>
+              <span style={{ height: 5, flex: 1, borderRadius: 3, background: 'var(--card-border)' }}></span>
             </div>
           </div>
         </div>
@@ -206,15 +206,15 @@ export default function DashboardPage() {
             </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
-              <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 12px' }}>
+              <div style={{ background: 'var(--input-bg)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 12px' }}>
                 <div style={{ fontSize: 11, color: 'var(--text-faint)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>Coverage</div>
                 <div style={{ fontSize: 15, fontWeight: 700 }}>2.43 m²</div>
               </div>
-              <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 12px' }}>
+              <div style={{ background: 'var(--input-bg)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 12px' }}>
                 <div style={{ fontSize: 11, color: 'var(--text-faint)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2C9 2 7 5 7 8c0 2 1 3 1 5 0 3-2 4-2 7 0 1 1 2 2 2s2-1 2-2c0-2 1-3 2-3s2 1 2 3c0 1 1 2 2 2s2-1 2-2c0-3-2-4-2-7 0-2 1-3 1-5 0-3-2-6-5-6z"/></svg>Bleaching %</div>
                 <div style={{ fontSize: 15, fontWeight: 700 }}>{recent ? recent.bleachedCoralPct : '22.3'}%</div>
               </div>
-              <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 12px' }}>
+              <div style={{ background: 'var(--input-bg)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 12px' }}>
                 <div style={{ fontSize: 11, color: 'var(--text-faint)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>Confidence</div>
                 <div style={{ fontSize: 15, fontWeight: 700 }}>97.6%</div>
               </div>
@@ -263,15 +263,15 @@ export default function DashboardPage() {
             </div>
             <div style={{ position: 'relative', height: 280, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--card-border)', background: 'radial-gradient(circle at 30% 40%, rgba(20,90,60,0.5), transparent 45%), radial-gradient(circle at 65% 30%, rgba(20,90,60,0.4), transparent 40%), linear-gradient(160deg,#0a3450 0%, #0a4560 45%, #073048 100%)' }}>
               <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <button style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(6,18,34,0.85)', border: '1px solid var(--card-border)', color: 'var(--text-dim)', fontSize: 15 }}>+</button>
-                <button style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(6,18,34,0.85)', border: '1px solid var(--card-border)', color: 'var(--text-dim)', fontSize: 15 }}>–</button>
+                <button style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--card)', border: '1px solid var(--card-border)', color: 'var(--text-dim)', fontSize: 15 }}>+</button>
+                <button style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--card)', border: '1px solid var(--card-border)', color: 'var(--text-dim)', fontSize: 15 }}>–</button>
               </div>
               <div style={{ position: 'absolute', width: 14, height: 14, borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)', border: '2px solid rgba(0,0,0,0.3)', background: 'var(--green)', top: '22%', left: '45%' }}></div>
               <div style={{ position: 'absolute', width: 14, height: 14, borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)', border: '2px solid rgba(0,0,0,0.3)', background: 'var(--amber)', top: '33%', left: '36%' }}></div>
               <div style={{ position: 'absolute', width: 14, height: 14, borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)', border: '2px solid rgba(0,0,0,0.3)', background: 'var(--amber)', top: '47%', left: '58%' }}></div>
               <div style={{ position: 'absolute', width: 14, height: 14, borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)', border: '2px solid rgba(0,0,0,0.3)', background: 'var(--red)', top: '55%', left: '33%' }}></div>
               
-              <div style={{ position: 'absolute', bottom: 10, left: 10, display: 'flex', gap: 16, background: 'rgba(6,18,34,0.75)', padding: '7px 14px', borderRadius: 9, fontSize: 11, color: 'var(--text-dim)' }}>
+              <div style={{ position: 'absolute', bottom: 10, left: 10, display: 'flex', gap: 16, background: 'var(--card)', padding: '7px 14px', borderRadius: 9, fontSize: 11, color: 'var(--text-dim)' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 8, height: 8, background: 'var(--green)', borderRadius: '50%' }}></span>Healthy</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 8, height: 8, background: 'var(--amber)', borderRadius: '50%' }}></span>Moderate</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 8, height: 8, background: 'var(--red)', borderRadius: '50%' }}></span>Poor</span>
@@ -308,11 +308,11 @@ export default function DashboardPage() {
           <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 22 }}>
             <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Coral Health Trend</h3>
             <svg width="100%" height="190" viewBox="0 0 420 190" preserveAspectRatio="none">
-              <line x1="0" y1="10" x2="420" y2="10" stroke="rgba(255,255,255,0.05)"/>
-              <line x1="0" y1="52" x2="420" y2="52" stroke="rgba(255,255,255,0.05)"/>
-              <line x1="0" y1="94" x2="420" y2="94" stroke="rgba(255,255,255,0.05)"/>
-              <line x1="0" y1="136" x2="420" y2="136" stroke="rgba(255,255,255,0.05)"/>
-              <line x1="0" y1="178" x2="420" y2="178" stroke="rgba(255,255,255,0.05)"/>
+              <line x1="0" y1="10" x2="420" y2="10" stroke="var(--bg-hover)"/>
+              <line x1="0" y1="52" x2="420" y2="52" stroke="var(--bg-hover)"/>
+              <line x1="0" y1="94" x2="420" y2="94" stroke="var(--bg-hover)"/>
+              <line x1="0" y1="136" x2="420" y2="136" stroke="var(--bg-hover)"/>
+              <line x1="0" y1="178" x2="420" y2="178" stroke="var(--bg-hover)"/>
               <polyline fill="none" stroke="#3b9eff" strokeWidth="2.5" points="10,55 60,50 110,58 160,48 210,60 260,52 310,44 360,50 410,46"/>
               <polyline fill="none" stroke="#9b8cff" strokeWidth="2.5" points="10,110 60,100 110,120 160,105 210,118 260,100 310,112 360,98 410,108"/>
               <polyline fill="none" stroke="#ff6b6b" strokeWidth="2.5" points="10,150 60,158 110,146 160,155 210,148 260,160 310,150 360,152 410,148"/>
@@ -345,15 +345,15 @@ export default function DashboardPage() {
           <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 22 }}>
             <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Quick Actions</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <button onClick={() => navigate('/upload')} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer', color: 'var(--text)' }}>
+              <button onClick={() => navigate('/upload')} style={{ background: 'var(--input-bg)', border: '1px solid var(--card-border)', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer', color: 'var(--text)' }}>
                 <span style={{ width: 32, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(59,158,255,0.14)', color: '#5db8ff' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 16V7M12 7l-3.5 3.5M12 7l3.5 3.5"/><path d="M6.5 17.5A4.5 4.5 0 017 8.6 5.5 5.5 0 0117.9 8 4 4 0 0117.5 17.5H6.5z"/></svg></span>
                 <div><div style={{ fontSize: 13, fontWeight: 600 }}>New Analysis</div><div style={{ fontSize: 11, color: 'var(--text-faint)' }}>Upload image</div></div>
               </button>
-              <button onClick={() => navigate('/history')} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer', color: 'var(--text)' }}>
+              <button onClick={() => navigate('/history')} style={{ background: 'var(--input-bg)', border: '1px solid var(--card-border)', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer', color: 'var(--text)' }}>
                 <span style={{ width: 32, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,107,107,0.14)', color: 'var(--red)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 3v4a1 1 0 001 1h4"/><path d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z"/></svg></span>
                 <div><div style={{ fontSize: 13, fontWeight: 600 }}>Generate Report</div><div style={{ fontSize: 11, color: 'var(--text-faint)' }}>Download PDF</div></div>
               </button>
-              <button onClick={() => navigate('/map')} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer', color: 'var(--text)', gridColumn: '1 / -1', flexDirection: 'row', alignItems: 'center' }}>
+              <button onClick={() => navigate('/map')} style={{ background: 'var(--input-bg)', border: '1px solid var(--card-border)', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer', color: 'var(--text)', gridColumn: '1 / -1', flexDirection: 'row', alignItems: 'center' }}>
                 <span style={{ width: 32, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(155,140,255,0.14)', color: 'var(--purple)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 6-9 12-9 12S3 16 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
                 <div><div style={{ fontSize: 13, fontWeight: 600 }}>Reef Map</div><div style={{ fontSize: 11, color: 'var(--text-faint)' }}>View monitored locations</div></div>
               </button>

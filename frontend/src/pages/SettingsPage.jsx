@@ -180,7 +180,7 @@ export default function SettingsPage() {
           </GlassCard>
 
           {/* Security Settings */}
-          <GlassCard style={{ padding: 30, background: 'rgba(20, 24, 39, 0.6)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <GlassCard style={{ padding: 30, background: 'var(--card)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <h2 style={{ fontSize: '1.2rem', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text)' }}>
               <ShieldCheck size={20} color="var(--amber)" /> Security Settings
             </h2>

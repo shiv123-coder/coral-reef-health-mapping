@@ -1,38 +1,53 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { adminGetUsers, adminGetAnalyses, adminGetAnalytics, adminUpdateUser, adminDeleteUser } from '../services/api';
+import { collection, onSnapshot, query, orderBy, doc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useAuth } from '../context/AuthContext';
-import { useNotifications } from '../hooks/useNotifications';
 
 export default function AdminPage() {
-  const [users, setUsers] = useState([]);
   const [analyses, setAnalyses] = useState([]);
-  const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
-  
-  // Edit User State
-  const [editingUser, setEditingUser] = useState(null);
-  const [editForm, setEditForm] = useState({ firstName: '', lastName: '', role: '', newPassword: '' });
-  
-  // Search State
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  // Notification State
-  const { createNotification } = useNotifications();
-  const [notifForm, setNotifForm] = useState({ title: '', message: '', type: 'info' });
+  const [systemConfig, setSystemConfig] = useState({ isOffline: false, criticalThreshold: 80 });
+  const [updatingSystem, setUpdatingSystem] = useState(false);
 
   const { user } = useAuth();
 
   useEffect(() => {
-    Promise.all([adminGetUsers(), adminGetAnalyses(), adminGetAnalytics()])
-      .then(([u, a, an]) => { 
-        setUsers(u.users || []); 
-        setAnalyses(a.analyses || []); 
-        setAnalytics(an); 
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    setLoading(true);
+    
+    const unsubAnalyses = onSnapshot(query(collection(db, 'analyses'), orderBy('createdAt', 'desc')), (snapshot) => {
+      const analysesData = snapshot.docs.map(doc => doc.data());
+      setAnalyses(analysesData);
+      setLoading(false);
+    }, console.error);
+
+    const unsubConfig = onSnapshot(doc(db, 'global_config', 'system'), (docSnap) => {
+      if (docSnap.exists()) {
+        setSystemConfig(docSnap.data());
+      }
+    });
+
+    return () => {
+      unsubAnalyses();
+      unsubConfig();
+    };
   }, []);
+
+  const toggleOfflineMode = async () => {
+    if (!window.confirm(`Are you sure you want to turn the system ${systemConfig.isOffline ? 'ONLINE' : 'OFFLINE'}?`)) return;
+    setUpdatingSystem(true);
+    try {
+      await setDoc(doc(db, 'global_config', 'system'), {
+        ...systemConfig,
+        isOffline: !systemConfig.isOffline
+      }, { merge: true });
+    } catch (e) {
+      console.error(e);
+      alert("Failed to update system mode");
+    }
+    setUpdatingSystem(false);
+  };
 
   // Stats calculation
   const n = analyses.length || 1;
@@ -43,251 +58,192 @@ export default function AdminPage() {
   const riskPriority = { Critical: 4, High: 3, Moderate: 2, Low: 1, Minimal: 0 };
   const worstRisk = analyses.length ? analyses.reduce((worst, a) => (riskPriority[a.riskLevel] || 0) > (riskPriority[worst] || 0) ? (a.riskLevel || 'Minimal') : worst, 'Minimal') : 'N/A';
 
-  // Recent users
-  const filteredUsers = useMemo(() => {
-    return users.filter(u => 
-      (u.firstName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (u.lastName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (u.email || '').toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [users, searchQuery]);
-  const recentUsers = filteredUsers.slice(0, 15);
-  
-  const handleDeleteUser = async (uid) => {
-    if (!window.confirm("CRITICAL: Are you sure you want to permanently delete this user?")) return;
-    try {
-      await adminDeleteUser(uid);
-      setUsers(u => u.filter(x => x.uid !== uid));
-    } catch (e) {
-      alert("Failed to delete user: " + (e.response?.data?.detail || e.message));
-    }
-  };
-
-  const handleEditClick = (u) => {
-    setEditingUser(u);
-    setEditForm({ firstName: u.firstName || '', lastName: u.lastName || '', role: u.role || 'student', newPassword: '' });
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editingUser) return;
-    try {
-      await adminUpdateUser(editingUser.uid, editForm);
-      setUsers(u => u.map(x => x.uid === editingUser.uid ? { ...x, ...editForm } : x));
-      setEditingUser(null);
-    } catch (e) {
-      alert("Failed to update user: " + (e.response?.data?.detail || e.message));
-    }
-  };
-
-  const handleSendNotification = async () => {
-    if (!notifForm.title || !notifForm.message) return alert("Title and message required");
-    try {
-      await createNotification({ userId: 'global', ...notifForm });
-      setNotifForm({ title: '', message: '', type: 'info' });
-      alert("System Notification sent to all users successfully.");
-    } catch (e) {
-      alert("Failed to send notification: " + e.message);
-    }
-  };
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1400, margin: '0 auto', color: '#f8fafc' }}>
+  // Group analyses by date for time series chart
+  const timeSeriesData = useMemo(() => {
+    if (!analyses || analyses.length === 0) return [];
+    const dateMap = {};
+    const sorted = [...analyses].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    
+    let cumulativeAnalyses = 0;
+    sorted.forEach(a => {
+      const d = new Date(a.createdAt);
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       
+      if (!dateMap[dateStr]) {
+        dateMap[dateStr] = { name: dateStr, count: 0, healthSum: 0, cumulative: cumulativeAnalyses };
+      }
+      
+      dateMap[dateStr].count += 1;
+      dateMap[dateStr].healthSum += (a.healthyCoralPct || 0);
+      cumulativeAnalyses += 1;
+      dateMap[dateStr].cumulative = cumulativeAnalyses;
+    });
+    
+    return Object.values(dateMap).map(day => ({
+      name: day.name,
+      dailyScans: day.count,
+      totalScans: day.cumulative,
+      avgHealth: Number((day.healthSum / day.count).toFixed(1))
+    }));
+  }, [analyses]);
+
       {/* Key Metrics Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-        <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, padding: 20 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Registered Users</div>
-          <div style={{ fontSize: 32, fontWeight: 700, margin: '8px 0', color: '#f8fafc' }}>{loading ? '--' : users.length}</div>
-          <div style={{ fontSize: 13, color: '#10b981', display: 'flex', alignItems: 'center', gap: 4 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14m-7-7v14"/></svg> System Healthy</div>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 8, padding: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>System Status</div>
+          <div style={{ fontSize: 32, fontWeight: 700, margin: '8px 0', color: systemConfig.isOffline ? '#ef4444' : '#10b981' }}>{systemConfig.isOffline ? 'OFFLINE' : 'ONLINE'}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: 4 }}>Global availability status</div>
         </div>
 
-        <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, padding: 20 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total ML Analyses</div>
-          <div style={{ fontSize: 32, fontWeight: 700, margin: '8px 0', color: '#f8fafc' }}>{loading ? '--' : (analytics?.totalAnalyses || analyses.length || 0)}</div>
-          <div style={{ fontSize: 13, color: '#10b981', display: 'flex', alignItems: 'center', gap: 4 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14m-7-7v14"/></svg> Processing Optimal</div>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 8, padding: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total ML Analyses</div>
+          <div style={{ fontSize: 32, fontWeight: 700, margin: '8px 0', color: 'var(--text)' }}>{loading ? '--' : analyses.length}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: 4 }}>Volume of processed telemetry</div>
         </div>
 
-        <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, padding: 20 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Average Coral Health</div>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 8, padding: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Average Coral Health</div>
           <div style={{ fontSize: 32, fontWeight: 700, margin: '8px 0', color: '#3b82f6' }}>{healthyPct}%</div>
-          <div style={{ fontSize: 13, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 4 }}>Across all submitted analyses</div>
+          <div style={{ fontSize: 13, color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: 4 }}>Global ecosystem vitality index</div>
         </div>
 
-        <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, padding: 20 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Highest Risk Detected</div>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 8, padding: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Highest Risk Detected</div>
           <div style={{ fontSize: 32, fontWeight: 700, margin: '8px 0', color: worstRisk === 'Minimal' || worstRisk === 'Low' ? '#10b981' : worstRisk === 'Moderate' ? '#f59e0b' : '#ef4444' }}>{worstRisk}</div>
-          <div style={{ fontSize: 13, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 4 }}>System threat level</div>
+          <div style={{ fontSize: 13, color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: 4 }}>Peak ecological threat level</div>
         </div>
+      </div>
+
+      {/* Time Series Analytics Chart */}
+      <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 8, padding: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+          <div>
+            <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 4px 0' }}>System Telemetry & Progress</h2>
+            <div style={{ fontSize: 13, color: 'var(--text-dim)' }}>Real-time temporal analysis of system throughput and ecological health</div>
+          </div>
+        </div>
+        
+        {timeSeriesData.length > 0 ? (
+          <div style={{ width: '100%', height: 320 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorHealth" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" vertical={false} />
+                <XAxis dataKey="name" stroke="var(--text-faint)" fontSize={12} tickLine={false} axisLine={false} dy={10} />
+                <YAxis yAxisId="left" stroke="var(--text-faint)" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis yAxisId="right" orientation="right" stroke="var(--text-faint)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}%`} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--card-border)', borderRadius: 8, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.5)' }} 
+                  itemStyle={{ fontSize: 13, fontWeight: 500 }}
+                  labelStyle={{ color: 'var(--text-dim)', marginBottom: 4 }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 20 }} />
+                <Area yAxisId="left" type="monotone" dataKey="totalScans" name="Cumulative ML Scans" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorTotal)" />
+                <Area yAxisId="right" type="monotone" dataKey="avgHealth" name="Avg Coral Health (%)" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorHealth)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div style={{ height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)', background: 'var(--input-bg)', borderRadius: 8, border: '1px solid var(--input-border)' }}>
+            Awaiting telemetry data to generate temporal graphs...
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: 24, alignItems: 'start' }}>
         
-        {/* Main Data Table Area */}
-        <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, display: 'flex', flexDirection: 'column' }}>
-          
-          <div style={{ padding: '20px 24px', borderBottom: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>User Management</h2>
-            <div style={{ position: 'relative' }}>
-              <svg style={{ position: 'absolute', left: 10, top: 8, color: '#64748b' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-              <input 
-                type="text" 
-                placeholder="Search database..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 6, padding: '8px 12px 8px 34px', color: '#f8fafc', fontSize: 13, width: 260, outline: 'none' }}
-              />
-            </div>
+        {/* Main Controls Area */}
+        <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 8, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--card-border)' }}>
+            <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 4px 0' }}>Global System Controls</h2>
+            <div style={{ fontSize: 13, color: 'var(--text-dim)' }}>Manage core operational parameters and system availability</div>
           </div>
 
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ background: '#1e293b' }}>
-                  <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase' }}>User ID</th>
-                  <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase' }}>Email Address</th>
-                  <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase' }}>Role</th>
-                  <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase' }}>Status</th>
-                  <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentUsers.length > 0 ? recentUsers.map((u, i) => (
-                  <tr key={u.uid} style={{ borderBottom: '1px solid #1e293b', background: i % 2 === 0 ? 'transparent' : 'rgba(30, 41, 59, 0.3)' }}>
-                    <td style={{ padding: '16px 24px', fontSize: 13, fontFamily: 'monospace', color: '#64748b' }}>{u.uid.substring(0,8)}...</td>
-                    <td style={{ padding: '16px 24px', fontSize: 14, fontWeight: 500 }}>
-                      {u.email}
-                      <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>{u.firstName} {u.lastName}</div>
-                    </td>
-                    <td style={{ padding: '16px 24px' }}>
-                      <span style={{ padding: '4px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, textTransform: 'uppercase', background: u.role === 'admin' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(100, 116, 139, 0.1)', color: u.role === 'admin' ? '#3b82f6' : '#94a3b8' }}>
-                        {u.role || 'USER'}
-                      </span>
-                    </td>
-                    <td style={{ padding: '16px 24px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#cbd5e1' }}>
-                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981' }}></div> Active
-                      </div>
-                    </td>
-                    <td style={{ padding: '16px 24px', textAlign: 'right' }}>
-                      <button onClick={() => handleEditClick(u)} style={{ background: 'transparent', border: '1px solid #334155', color: '#cbd5e1', padding: '6px 12px', borderRadius: 4, fontSize: 12, fontWeight: 500, cursor: 'pointer', marginRight: 8, transition: 'all 0.2s' }} onMouseOver={e => e.target.style.background = '#1e293b'} onMouseOut={e => e.target.style.background = 'transparent'}>
-                        Edit
-                      </button>
-                      <button onClick={() => handleDeleteUser(u.uid)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '6px 12px', borderRadius: 4, fontSize: 12, fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s' }} onMouseOver={e => e.target.style.background = 'rgba(239, 68, 68, 0.2)'} onMouseOut={e => e.target.style.background = 'rgba(239, 68, 68, 0.1)'}>
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>No records found matching query.</td></tr>
-                )}
-              </tbody>
-            </table>
+          <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 32 }}>
+            
+            {/* Kill Switch */}
+            <div style={{ padding: 24, background: systemConfig.isOffline ? 'rgba(239, 68, 68, 0.05)' : 'var(--bg-hover)', border: `1px solid ${systemConfig.isOffline ? 'rgba(239, 68, 68, 0.2)' : 'var(--card-border)'}`, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <h3 style={{ fontSize: 16, fontWeight: 600, color: systemConfig.isOffline ? '#ef4444' : 'var(--text)', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                  Emergency Kill Switch (Offline Mode)
+                </h3>
+                <div style={{ fontSize: 13, color: 'var(--text-dim)', maxWidth: 400, lineHeight: 1.5 }}>
+                  Enabling this will instantly block all non-admins from logging in, redirect active sessions to a maintenance page, and reject incoming ML processing requests.
+                </div>
+              </div>
+              <button 
+                onClick={toggleOfflineMode}
+                disabled={updatingSystem}
+                style={{ 
+                  padding: '12px 24px', 
+                  background: systemConfig.isOffline ? 'transparent' : '#ef4444', 
+                  color: systemConfig.isOffline ? '#ef4444' : '#fff',
+                  border: `2px solid ${systemConfig.isOffline ? '#ef4444' : 'transparent'}`,
+                  borderRadius: 8, 
+                  fontSize: 14, 
+                  fontWeight: 700, 
+                  cursor: updatingSystem ? 'wait' : 'pointer',
+                  opacity: updatingSystem ? 0.7 : 1,
+                  transition: 'all 0.2s',
+                  boxShadow: systemConfig.isOffline ? 'none' : '0 4px 14px 0 rgba(239, 68, 68, 0.39)'
+                }}
+              >
+                {updatingSystem ? 'UPDATING...' : (systemConfig.isOffline ? 'BRING SYSTEM ONLINE' : 'TAKE SYSTEM OFFLINE')}
+              </button>
+            </div>
+
+            {/* Health Config */}
+            <div>
+              <h3 style={{ fontSize: 15, fontWeight: 600, margin: '0 0 12px 0' }}>Health Score Management</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', marginBottom: 6 }}>Critical Risk Threshold (%)</label>
+                  <input 
+                    type="number" 
+                    value={systemConfig.criticalThreshold || 80} 
+                    onChange={e => setDoc(doc(db, 'global_config', 'system'), { ...systemConfig, criticalThreshold: Number(e.target.value) }, { merge: true })}
+                    style={{ width: '100%', padding: '10px 12px', background: 'var(--input-bg)', border: '1px solid var(--input-border)', borderRadius: 6, color: 'var(--text)', fontSize: 14, outline: 'none' }} 
+                  />
+                  <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 6 }}>Bleaching % above this triggers Critical status.</div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
         {/* Side Controls */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          
-          {/* Notification Broadcaster */}
-          <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, padding: 20 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 16px 0' }}>System Broadcast</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>Title</label>
-                <input type="text" value={notifForm.title} onChange={e => setNotifForm({...notifForm, title: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#f8fafc', fontSize: 13, outline: 'none' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>Message</label>
-                <textarea value={notifForm.message} onChange={e => setNotifForm({...notifForm, message: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#f8fafc', fontSize: 13, outline: 'none', minHeight: 80, resize: 'vertical' }} />
-              </div>
-              <div style={{ display: 'flex', gap: 12 }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>Priority</label>
-                  <select value={notifForm.type} onChange={e => setNotifForm({...notifForm, type: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#f8fafc', fontSize: 13, outline: 'none' }}>
-                    <option value="info">Information</option>
-                    <option value="warning">Warning</option>
-                    <option value="error">Critical Error</option>
-                  </select>
-                </div>
-              </div>
-              <button onClick={handleSendNotification} style={{ width: '100%', padding: '10px', background: '#3b82f6', color: '#ffffff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 8, transition: 'background 0.2s' }} onMouseOver={e => e.target.style.background = '#2563eb'} onMouseOut={e => e.target.style.background = '#3b82f6'}>
-                Dispatch Global Broadcast
-              </button>
-            </div>
-          </div>
-
           {/* System Logs / Server Info */}
-          <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, padding: 20 }}>
+          <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 8, padding: 20 }}>
             <h3 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 16px 0' }}>Server Status</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                <span style={{ color: '#94a3b8' }}>API Endpoint</span>
-                <span style={{ color: '#10b981', fontWeight: 500 }}>Online</span>
+                <span style={{ color: 'var(--text-dim)' }}>API Endpoint</span>
+                <span style={{ color: systemConfig.isOffline ? '#ef4444' : '#10b981', fontWeight: 500 }}>{systemConfig.isOffline ? 'Offline' : 'Online'}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                <span style={{ color: '#94a3b8' }}>ML Inference Engine</span>
-                <span style={{ color: '#10b981', fontWeight: 500 }}>Ready</span>
+                <span style={{ color: 'var(--text-dim)' }}>ML Inference Engine</span>
+                <span style={{ color: systemConfig.isOffline ? '#ef4444' : '#10b981', fontWeight: 500 }}>{systemConfig.isOffline ? 'Halted' : 'Ready'}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                <span style={{ color: '#94a3b8' }}>Firebase Storage</span>
+                <span style={{ color: 'var(--text-dim)' }}>Firebase Storage</span>
                 <span style={{ color: '#eab308', fontWeight: 500 }}>64% Capacity</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                <span style={{ color: '#94a3b8' }}>Active Sessions</span>
-                <span style={{ color: '#f8fafc', fontWeight: 500 }}>{users.length > 0 ? Math.max(1, Math.floor(users.length / 3)) : 1} Nodes</span>
-              </div>
             </div>
           </div>
-          
         </div>
       </div>
-
-      {/* Edit User Modal */}
-      {editingUser && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(2, 6, 23, 0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }}>
-          <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, padding: 32, width: '100%', maxWidth: 440, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)' }}>
-            <h3 style={{ fontSize: 20, fontWeight: 600, margin: '0 0 24px 0', color: '#f8fafc' }}>Modify User Record</h3>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>Account Email (Read-Only)</label>
-                <input type="text" disabled value={editingUser.email} style={{ width: '100%', padding: '10px 12px', background: 'rgba(30, 41, 59, 0.5)', border: '1px solid #334155', borderRadius: 6, color: '#64748b', fontSize: 14 }} />
-              </div>
-              
-              <div style={{ display: 'flex', gap: 12 }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>First Name</label>
-                  <input type="text" value={editForm.firstName} onChange={e => setEditForm({...editForm, firstName: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#f8fafc', fontSize: 14, outline: 'none' }} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>Last Name</label>
-                  <input type="text" value={editForm.lastName} onChange={e => setEditForm({...editForm, lastName: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#f8fafc', fontSize: 14, outline: 'none' }} />
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>System Role</label>
-                <select value={editForm.role} onChange={e => setEditForm({...editForm, role: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#f8fafc', fontSize: 14, outline: 'none' }}>
-                  <option value="student">Student / Standard User</option>
-                  <option value="admin">Administrator</option>
-                </select>
-              </div>
-
-              <div style={{ padding: '16px', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 8, marginTop: 8 }}>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#ef4444', marginBottom: 6 }}>Manual Password Override</label>
-                <input type="password" placeholder="Leave blank to keep current password" value={editForm.newPassword} onChange={e => setEditForm({...editForm, newPassword: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#f8fafc', fontSize: 14, outline: 'none' }} />
-                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>Warning: Bypasses standard email reset workflows.</div>
-              </div>
-
-            </div>
-
-            <div style={{ display: 'flex', gap: 12, marginTop: 32 }}>
-              <button onClick={() => setEditingUser(null)} style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid #334155', color: '#cbd5e1', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }} onMouseOver={e => e.target.style.background = '#1e293b'} onMouseOut={e => e.target.style.background = 'transparent'}>Cancel</button>
-              <button onClick={handleSaveEdit} style={{ flex: 1, padding: '10px', background: '#ef4444', color: '#ffffff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }} onMouseOver={e => e.target.style.background = '#dc2626'} onMouseOut={e => e.target.style.background = '#ef4444'}>Apply Changes</button>
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   );

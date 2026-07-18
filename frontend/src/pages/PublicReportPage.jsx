@@ -31,9 +31,9 @@ export default function PublicReportPage() {
             <GlassCard style={{ marginBottom: 24 }}>
               <h3 style={{ fontFamily: 'var(--font-display)', marginBottom: 12 }}>Uploader Information</h3>
               <p><strong>{data.firstName} {data.lastName}</strong></p>
-              <p style={{ color: '#94a3b8' }}>{data.organization} — {data.email}</p>
+              <p style={{ color: 'var(--text-dim)' }}>{data.organization} — {data.email}</p>
               <p style={{ marginTop: 8 }}>File: {data.fileName} ({data.fileType})</p>
-              <p style={{ color: '#64748b', fontSize: '0.85rem' }}>{new Date(data.createdAt).toLocaleString()}</p>
+              <p style={{ color: 'var(--text-faint)', fontSize: '0.85rem' }}>{new Date(data.createdAt).toLocaleString()}</p>
             </GlassCard>
 
             <div className="stats-grid">

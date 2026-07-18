@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import { createUserWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { auth, googleProvider } from '../firebase';
 import { registerProfile } from '../services/api';
+import CustomSelect from '../components/CustomSelect';
 
 const STEPS = ['Account', 'Profile', 'Organization'];
 
@@ -14,6 +16,7 @@ export default function SignupPage() {
   const [visible, setVisible] = useState(false);
   const [visibleConfirm, setVisibleConfirm] = useState(false);
   const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
 
   const [form, setForm] = useState({
     email: '',
@@ -51,8 +54,8 @@ export default function SignupPage() {
       b.style.animationDelay = (Math.random() * 6) + 's';
       b.style.position = 'absolute';
       b.style.borderRadius = '50%';
-      b.style.border = '1px solid rgba(255,255,255,0.15)';
-      b.style.background = 'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.15), transparent 60%)';
+      b.style.border = isDarkMode ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(59,158,255,0.2)';
+      b.style.background = isDarkMode ? 'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.15), transparent 60%)' : 'radial-gradient(circle at 35% 30%, rgba(59,158,255,0.1), transparent 60%)';
       b.style.animation = 'rise linear infinite';
       b.style.pointerEvents = 'none';
       pageEl.appendChild(b);
@@ -62,7 +65,7 @@ export default function SignupPage() {
       const bubbles = document.querySelectorAll('.bubble');
       bubbles.forEach(b => b.remove());
     }
-  }, []);
+  }, [isDarkMode]);
 
   const validateStep = () => {
     if (step === 0) {
@@ -173,11 +176,13 @@ export default function SignupPage() {
   return (
     <div className="page" style={{
       position: 'relative', minHeight: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column',
-      background: 'radial-gradient(ellipse at 15% 0%, rgba(59,158,255,0.20), transparent 45%), radial-gradient(ellipse at 60% 70%, rgba(79,214,232,0.08), transparent 50%), linear-gradient(180deg,#03101f 0%,#052038 45%,#0a2c46 75%,#04121f 100%)'
+      background: isDarkMode 
+        ? 'radial-gradient(ellipse at 15% 0%, rgba(59,158,255,0.20), transparent 45%), radial-gradient(ellipse at 60% 70%, rgba(79,214,232,0.08), transparent 50%), linear-gradient(180deg,#03101f 0%,#052038 45%,#0a2c46 75%,#04121f 100%)'
+        : 'radial-gradient(ellipse at 15% 0%, rgba(59,158,255,0.10), transparent 45%), radial-gradient(ellipse at 60% 70%, rgba(79,214,232,0.08), transparent 50%), linear-gradient(180deg, #f2f8fc 0%, #eef6fc 45%, #e1effa 75%, #f2f8fc 100%)'
     }}>
       <div className="rays" style={{
         position: 'absolute', top: '-5%', left: 0, width: '45%', height: '60%', pointerEvents: 'none',
-        background: 'linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.09) 45%, transparent 58%)',
+        background: isDarkMode ? 'linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.09) 45%, transparent 58%)' : 'linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.5) 45%, transparent 58%)',
         transform: 'rotate(-6deg)'
       }}></div>
 
@@ -186,7 +191,10 @@ export default function SignupPage() {
         {/* LEFT */}
         <div className="left" style={{
           position: 'relative', borderRadius: 22, overflow: 'hidden', minHeight: 560, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: 34,
-          background: 'linear-gradient(180deg, rgba(4,14,26,0.2), rgba(3,10,20,0.75) 75%), radial-gradient(ellipse at 70% 20%, rgba(90,180,255,0.18), transparent 50%), linear-gradient(160deg,#0a3350,#083150 40%,#0a2438)'
+          background: isDarkMode 
+            ? 'linear-gradient(180deg, rgba(4,14,26,0.2), rgba(3,10,20,0.75) 75%), radial-gradient(ellipse at 70% 20%, rgba(90,180,255,0.18), transparent 50%), linear-gradient(160deg,#0a3350,#083150 40%,#0a2438)'
+            : 'linear-gradient(180deg, rgba(255,255,255,0.2), rgba(255,255,255,0.75) 75%), radial-gradient(ellipse at 70% 20%, rgba(59,158,255,0.10), transparent 50%), linear-gradient(160deg,#ffffff,#f4f9fd 40%,#e1effa)',
+          boxShadow: isDarkMode ? 'none' : '0 10px 30px -10px rgba(59,158,255,0.15)'
         }}>
           <div className="brand" style={{ position: 'absolute', top: 34, left: 34, display: 'flex', alignItems: 'center', gap: 12, zIndex: 3 }}>
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M12 2C9 2 7 5 7 8c0 2 1 3 1 5 0 3-2 4-2 7 0 1 1 2 2 2s2-1 2-2c0-2 1-3 2-3s2 1 2 3c0 1 1 2 2 2s2-1 2-2c0-3-2-4-2-7 0-2 1-3 1-5 0-3-2-6-5-6z" fill="url(#lg1)"/><defs><linearGradient id="lg1" x1="7" y1="2" x2="17" y2="22"><stop stopColor="#4fd6e8"/><stop offset="1" stopColor="#3b7dff"/></linearGradient></defs></svg>
@@ -206,17 +214,17 @@ export default function SignupPage() {
               <path d="M40 260 C40 200 20 200 20 160 C20 130 40 130 40 95 M20 160 C20 160 -10 155 -10 130 M40 95 C40 95 60 90 60 65" stroke="#c9a876" strokeWidth="9" fill="none" strokeLinecap="round"/>
               <path d="M110 260 C110 190 90 190 90 145 C90 115 115 115 115 75 C115 50 130 50 130 20 M90 145 C90 145 60 140 60 110" stroke="#e0a687" strokeWidth="10" fill="none" strokeLinecap="round"/>
               <path d="M170 260 C170 220 155 220 155 190 C155 168 175 168 175 140" stroke="#9fb3d1" strokeWidth="7" fill="none" strokeLinecap="round"/>
-              <ellipse cx="130" cy="255" rx="120" ry="14" fill="#0a2438" opacity=".5"/>
+              <ellipse cx="130" cy="255" rx="120" ry="14" fill={isDarkMode ? "#0a2438" : "rgba(59,158,255,0.15)"} opacity=".5"/>
             </svg>
           </div>
 
-          <div style={{ position: 'relative', zIndex: 3, background: 'rgba(6,18,34,0.72)', border: '1px solid var(--card-border)', borderRadius: 16, padding: '22px 24px', backdropFilter: 'blur(6px)' }}>
+          <div style={{ position: 'relative', zIndex: 3, background: isDarkMode ? 'rgba(6,18,34,0.72)' : 'rgba(255, 255, 255, 0.7)', border: '1px solid var(--card-border)', borderRadius: 16, padding: '22px 24px', backdropFilter: 'blur(6px)', boxShadow: isDarkMode ? 'none' : '0 4px 20px -5px rgba(0,0,0,0.05)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2C9 2 7 5 7 8c0 2 1 3 1 5 0 3-2 4-2 7 0 1 1 2 2 2s2-1 2-2c0-2 1-3 2-3s2 1 2 3c0 1 1 2 2 2s2-1 2-2c0-3-2-4-2-7 0-2 1-3 1-5 0-3-2-6-5-6z" fill="var(--cyan)"/></svg>
               <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--cyan)' }}>Protect Our Reefs</h3>
             </div>
             <p style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 16 }}>AI-Powered insights for a healthier ocean tomorrow.</p>
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', marginBottom: 16 }} />
+            <hr style={{ border: 'none', borderTop: '1px solid var(--card-border)', marginBottom: 16 }} />
             
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 16 }}>
               <span style={{ width: 38, height: 38, borderRadius: 10, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(59,158,255,0.14)', color: 'var(--cyan)' }}>
@@ -237,7 +245,7 @@ export default function SignupPage() {
         {/* RIGHT */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div id="signupForm" style={{
-            width: '100%', maxWidth: 440, background: 'rgba(14,33,62,0.55)', border: '1px solid var(--card-border)', borderRadius: 22, padding: '44px 40px', backdropFilter: 'blur(10px)', boxShadow: '0 20px 60px -20px rgba(0,0,0,0.5)'
+            width: '100%', maxWidth: 440, background: isDarkMode ? 'rgba(14,33,62,0.55)' : 'rgba(255, 255, 255, 0.85)', border: '1px solid var(--card-border)', borderRadius: 22, padding: '44px 40px', backdropFilter: 'blur(10px)', boxShadow: isDarkMode ? '0 20px 60px -20px rgba(0,0,0,0.5)' : '0 20px 60px -20px rgba(59,158,255,0.15)'
           }}>
             <h2 style={{ fontSize: 26, textAlign: 'center', fontWeight: 800, marginBottom: 8 }}>Create <span style={{ background: 'linear-gradient(90deg,#5db8ff,#4fd6e8)', WebkitBackgroundClip: 'text', color: 'transparent' }}>Account</span></h2>
             <p style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: 14, marginBottom: 20 }}>Join the Coral Reef Health Mapping platform</p>
@@ -246,7 +254,7 @@ export default function SignupPage() {
               {STEPS.map((s, i) => (
                 <div key={s} title={s} style={{
                   width: 12, height: 12, borderRadius: '50%',
-                  background: i === step ? 'var(--cyan)' : i < step ? 'var(--blue)' : 'rgba(255,255,255,0.1)',
+                  background: i === step ? 'var(--cyan)' : i < step ? 'var(--blue)' : 'var(--card-border)',
                   boxShadow: i === step ? '0 0 10px rgba(79,214,232,0.6)' : 'none',
                   transition: 'background .3s'
                 }} />
@@ -293,9 +301,9 @@ export default function SignupPage() {
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '26px 0 20px', color: 'var(--text-faint)', fontSize: 13 }}>
-                    <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }}></div>
+                    <div style={{ flex: 1, height: 1, background: 'var(--card-border)' }}></div>
                     or authenticate via SSO
-                    <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }}></div>
+                    <div style={{ flex: 1, height: 1, background: 'var(--card-border)' }}></div>
                   </div>
 
                   <button type="button" onClick={handleGoogleSignup} disabled={loading} style={{
@@ -337,12 +345,16 @@ export default function SignupPage() {
                   <input type="text" value={form.department} onChange={e => update('department', e.target.value)} className="input-field" style={{ paddingLeft: 14 }} placeholder="Computer Engineering" />
 
                   <label style={{ display: 'block', fontSize: 13.5, color: 'var(--text-dim)', marginBottom: 8, marginTop: 16 }}>Role</label>
-                  <select value={form.role} onChange={e => update('role', e.target.value)} className="input-field" style={{ paddingLeft: 14 }}>
-                    <option value="marine_biologist">Marine Biologist (Field Agent)</option>
-                    <option value="ngo_partner">NGO Partner</option>
-                    <option value="auditor">Government Auditor</option>
-                    <option value="student">Student / Academic</option>
-                  </select>
+                  <CustomSelect 
+                    value={form.role} 
+                    onChange={val => update('role', val)}
+                    options={[
+                      { value: 'marine_biologist', label: 'Marine Biologist (Field Agent)' },
+                      { value: 'ngo_partner', label: 'NGO Partner' },
+                      { value: 'auditor', label: 'Government Auditor' },
+                      { value: 'student', label: 'Student / Academic' }
+                    ]}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -366,7 +378,7 @@ export default function SignupPage() {
       </div>
 
       <div style={{
-        position: 'relative', zIndex: 2, margin: '0 44px 40px', background: 'rgba(6,18,34,0.6)', border: '1px solid var(--card-border)', borderRadius: 16, padding: '20px 30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, backdropFilter: 'blur(6px)'
+        position: 'relative', zIndex: 2, margin: '0 44px 40px', background: isDarkMode ? 'rgba(6,18,34,0.6)' : 'rgba(255, 255, 255, 0.7)', border: '1px solid var(--card-border)', borderRadius: 16, padding: '20px 30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, backdropFilter: 'blur(6px)', boxShadow: isDarkMode ? 'none' : '0 4px 20px -5px rgba(0,0,0,0.05)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'var(--text-dim)' }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" color="#5db0ff"><path d="M12 21s-7.5-4.6-10-9.1C.6 8.7 2 5 5.6 5c2 0 3.4 1.1 4.4 2.6C11 6.1 12.4 5 14.4 5 18 5 19.4 8.7 22 11.9 19.5 16.4 12 21 12 21z"/></svg>

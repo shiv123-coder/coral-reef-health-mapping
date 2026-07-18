@@ -64,33 +64,33 @@ export default function AdminSettingsPage() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 800, margin: '0 auto', color: '#f8fafc' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 800, margin: '0 auto', color: 'var(--text)' }}>
       
-      <div style={{ padding: '20px 24px', borderBottom: '1px solid #1e293b' }}>
+      <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--card-border)' }}>
         <h2 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Admin Settings</h2>
-        <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>Manage your administrator profile and security credentials.</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)', marginTop: 4 }}>Manage your administrator profile and security credentials.</div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
         
         {/* Profile Settings */}
-        <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, padding: 24 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 16px 0', borderBottom: '1px solid #1e293b', paddingBottom: 12 }}>Profile Information</h3>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 8, padding: 24 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 16px 0', borderBottom: '1px solid var(--card-border)', paddingBottom: 12 }}>Profile Information</h3>
           
           <form onSubmit={handleProfileSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>Account Email (Read-Only)</label>
-              <input type="text" disabled value={user?.email || ''} style={{ width: '100%', padding: '10px 12px', background: 'rgba(30, 41, 59, 0.5)', border: '1px solid #334155', borderRadius: 6, color: '#64748b', fontSize: 14 }} />
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', marginBottom: 6 }}>Account Email (Read-Only)</label>
+              <input type="text" disabled value={user?.email || ''} style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-hover)', border: '1px solid var(--input-border)', borderRadius: 6, color: 'var(--text-faint)', fontSize: 14 }} />
             </div>
 
             <div style={{ display: 'flex', gap: 16 }}>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>First Name</label>
-                <input required type="text" value={profileForm.firstName} onChange={e => setProfileForm({...profileForm, firstName: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#f8fafc', fontSize: 14, outline: 'none' }} />
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', marginBottom: 6 }}>First Name</label>
+                <input required type="text" value={profileForm.firstName} onChange={e => setProfileForm({...profileForm, firstName: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: 'var(--input-bg)', border: '1px solid var(--input-border)', borderRadius: 6, color: 'var(--text)', fontSize: 14, outline: 'none' }} />
               </div>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>Last Name</label>
-                <input required type="text" value={profileForm.lastName} onChange={e => setProfileForm({...profileForm, lastName: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#f8fafc', fontSize: 14, outline: 'none' }} />
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', marginBottom: 6 }}>Last Name</label>
+                <input required type="text" value={profileForm.lastName} onChange={e => setProfileForm({...profileForm, lastName: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: 'var(--input-bg)', border: '1px solid var(--input-border)', borderRadius: 6, color: 'var(--text)', fontSize: 14, outline: 'none' }} />
               </div>
             </div>
 
@@ -99,7 +99,7 @@ export default function AdminSettingsPage() {
             )}
 
             <div>
-              <button disabled={savingProfile} type="submit" style={{ padding: '10px 24px', background: '#3b82f6', color: '#ffffff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: savingProfile ? 'not-allowed' : 'pointer' }}>
+              <button disabled={savingProfile} type="submit" style={{ padding: '10px 24px', background: '#3b82f6', color: 'var(--text)', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: savingProfile ? 'not-allowed' : 'pointer' }}>
                 {savingProfile ? 'Saving...' : 'Save Profile'}
               </button>
             </div>
@@ -107,24 +107,24 @@ export default function AdminSettingsPage() {
         </div>
 
         {/* Security Settings */}
-        <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, padding: 24 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 16px 0', borderBottom: '1px solid #1e293b', paddingBottom: 12 }}>Security</h3>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 8, padding: 24 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 16px 0', borderBottom: '1px solid var(--card-border)', paddingBottom: 12 }}>Security</h3>
           
           <form onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             
             <div>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>Current Master Password</label>
-              <input required type="password" value={pwdForm.current} onChange={e => setPwdForm({...pwdForm, current: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#f8fafc', fontSize: 14, outline: 'none' }} />
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', marginBottom: 6 }}>Current Master Password</label>
+              <input required type="password" value={pwdForm.current} onChange={e => setPwdForm({...pwdForm, current: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: 'var(--input-bg)', border: '1px solid var(--input-border)', borderRadius: 6, color: 'var(--text)', fontSize: 14, outline: 'none' }} />
             </div>
 
             <div style={{ display: 'flex', gap: 16 }}>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>New Password</label>
-                <input required minLength={6} type="password" value={pwdForm.newPwd} onChange={e => setPwdForm({...pwdForm, newPwd: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#f8fafc', fontSize: 14, outline: 'none' }} />
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', marginBottom: 6 }}>New Password</label>
+                <input required minLength={6} type="password" value={pwdForm.newPwd} onChange={e => setPwdForm({...pwdForm, newPwd: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: 'var(--input-bg)', border: '1px solid var(--input-border)', borderRadius: 6, color: 'var(--text)', fontSize: 14, outline: 'none' }} />
               </div>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>Confirm New Password</label>
-                <input required minLength={6} type="password" value={pwdForm.confirm} onChange={e => setPwdForm({...pwdForm, confirm: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#f8fafc', fontSize: 14, outline: 'none' }} />
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', marginBottom: 6 }}>Confirm New Password</label>
+                <input required minLength={6} type="password" value={pwdForm.confirm} onChange={e => setPwdForm({...pwdForm, confirm: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: 'var(--input-bg)', border: '1px solid var(--input-border)', borderRadius: 6, color: 'var(--text)', fontSize: 14, outline: 'none' }} />
               </div>
             </div>
 

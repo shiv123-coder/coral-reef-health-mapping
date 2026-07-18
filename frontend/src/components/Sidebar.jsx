@@ -7,10 +7,10 @@ export default function Sidebar() {
   const location = useLocation();
 
   return (
-    <aside className="sidebar" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '24px 20px', background: 'var(--bg)', borderRight: '1px solid var(--card-border)', position: 'relative', overflow: 'hidden' }}>
+    <aside className="sidebar" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '24px 20px', background: 'var(--bg-deep)', borderRight: '1px solid var(--card-border)', position: 'relative', overflow: 'hidden' }}>
       <style>{`
         .nav a { display: flex; alignItems: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--text-dim); font-size: 14.5px; font-weight: 500; transition: background .2s, color .2s; text-decoration: none; align-items: center; }
-        .nav a:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+        .nav a:hover { background: var(--bg-hover); color: var(--text); }
         .nav a.active { background: linear-gradient(90deg, rgba(59,158,255,0.15), rgba(79,214,232,0.05)); color: var(--cyan); border: 1px solid rgba(79,214,232,0.2); }
       `}</style>
       
@@ -53,7 +53,7 @@ export default function Sidebar() {
       </nav>
 
       {/* User Profile Card */}
-      <div className="user-card" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.02)', margin: '0 4px', border: '1px solid rgba(255,255,255,0.05)', position: 'relative', zIndex: 2 }}>
+      <div className="user-card" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 12, background: 'var(--input-bg)', margin: '0 4px', border: '1px solid var(--card-border)', position: 'relative', zIndex: 2 }}>
         <div style={{ width: 36, height: 36, borderRadius: '50%', flex: 'none', background: 'linear-gradient(135deg, #3b7dff, #4fd6e8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold' }}>
           {user?.email?.[0].toUpperCase() || 'U'}
         </div>

@@ -94,10 +94,10 @@ export default function LivePage() {
               </button>
             </div>
             
-            <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', background: '#0f172a', minHeight: 300 }}>
+            <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', background: 'var(--card)', minHeight: 300 }}>
               <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', display: active ? 'block' : 'none' }} />
               {!active && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300, color: '#64748b' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300, color: 'var(--text-faint)' }}>
                   Camera inactive — click Start to begin
                 </div>
               )}
@@ -152,7 +152,7 @@ export default function LivePage() {
                   <RiskBadge level={result.riskLevel} />
                 </div>
                 
-                <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', borderRadius: 12, padding: 24, marginBottom: 24 }}>
+                <div style={{ background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 12, padding: 24, marginBottom: 24 }}>
                   <p style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: 16 }}>Coral Health Index</p>
                   
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

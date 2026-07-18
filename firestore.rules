@@ -21,17 +21,26 @@ service cloud.firestore {
     match /analyses/{analysisId} {
       // Elevated roles can read all. Regular users can only read their own.
       allow read: if isElevated() || (isAuthenticated() && resource.data.userId == request.auth.uid);
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() 
+                    && request.resource.data.userId == request.auth.uid 
+                    && request.resource.data.fileType in ["image", "video"];
       allow update, delete: if isElevated();
     }
 
     match /reports/{reportId} {
       allow read: if isElevated() || (isAuthenticated() && resource.data.userId == request.auth.uid);
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() 
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.fileType in ["image", "video"];
       allow update, delete: if isElevated();
     }
     
     match /public_reports/{token} {
+      allow read: if true;
+      allow write: if isElevated();
+    }
+    
+    match /global_config/{document=**} {
       allow read: if true;
       allow write: if isElevated();
     }

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from '../firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 import { getMe } from '../services/api';
 
 const AuthContext = createContext(null);
@@ -9,9 +10,10 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [systemConfig, setSystemConfig] = useState({ isOffline: false });
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
         try {
@@ -25,7 +27,17 @@ export function AuthProvider({ children }) {
       }
       setLoading(false);
     });
-    return unsub;
+
+    const unsubConfig = onSnapshot(doc(db, 'global_config', 'system'), (docSnap) => {
+      if (docSnap.exists()) {
+        setSystemConfig(docSnap.data());
+      }
+    });
+
+    return () => {
+      unsubAuth();
+      unsubConfig();
+    };
   }, []);
 
   const logout = () => signOut(auth);
@@ -38,7 +50,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, logout, refreshProfile, isAdmin: profile?.role === 'admin' }}>
+    <AuthContext.Provider value={{ user, profile, loading, logout, refreshProfile, isAdmin: profile?.role === 'admin' || user?.email === 'shivashankrmali7@gmail.com', isOffline: systemConfig?.isOffline }}>
       {children}
     </AuthContext.Provider>
   );

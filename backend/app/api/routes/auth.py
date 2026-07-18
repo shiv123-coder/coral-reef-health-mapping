@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.core.firebase import create_user_profile, get_user_profile, verify_firebase_token
+from app.core.firebase import create_user_profile, get_user_profile, verify_firebase_token, notify_admins
 from app.core.security import get_current_user
 from app.models.schemas import MessageResponse, UserRegisterRequest
 
@@ -36,6 +36,12 @@ async def register_user(body: UserRegisterRequest):
             "department": body.department or "",
             "country": body.country or "",
         })
+
+        notify_admins(
+            title="New User Registration",
+            message=f"{body.firstName} {body.lastName} ({body.email}) has registered for a {body.role} account.",
+            notif_type="info"
+        )
 
         return MessageResponse(message="Registration successful", success=True)
     except HTTPException:

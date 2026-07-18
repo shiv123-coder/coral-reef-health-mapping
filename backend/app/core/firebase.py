@@ -240,3 +240,34 @@ def _count_by_key(items: list, key: str) -> dict:
         val = item.get(key, "unknown")
         counts[val] = counts.get(val, 0) + 1
     return counts
+
+def create_notification(user_id: str, title: str, message: str, notif_type: str = "info"):
+    db = get_db()
+    if db is None:
+        return
+    db.collection("notifications").add({
+        "userId": user_id,
+        "title": title,
+        "message": message,
+        "type": notif_type,
+        "isRead": False,
+        "readBy": [],
+        "createdAt": firestore.SERVER_TIMESTAMP
+    })
+
+def notify_admins(title: str, message: str, notif_type: str = "info"):
+    db = get_db()
+    if db is None:
+        return
+    users = list_all_users()
+    for u in users:
+        if u.get("role") == "admin":
+            db.collection("notifications").add({
+                "userId": u.get("uid"),
+                "title": title,
+                "message": message,
+                "type": notif_type,
+                "isRead": False,
+                "readBy": [],
+                "createdAt": firestore.SERVER_TIMESTAMP
+            })

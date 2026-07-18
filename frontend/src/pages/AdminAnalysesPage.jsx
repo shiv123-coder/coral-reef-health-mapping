@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { adminGetAnalyses, adminOverrideReport } from '../services/api';
+import CustomSelect from '../components/CustomSelect';
 
 export default function AdminAnalysesPage() {
   const [analyses, setAnalyses] = useState([]);
@@ -66,7 +67,7 @@ export default function AdminAnalysesPage() {
     if (s === 'completed') return <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)' }}>Completed</span>;
     if (s === 'processing' || s === 'pending') return <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.2)', animation: 'pulse 2s infinite' }}>Processing</span>;
     if (s === 'failed') return <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}>Failed</span>;
-    return <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(100, 116, 139, 0.1)', color: '#94a3b8', border: '1px solid rgba(100, 116, 139, 0.2)' }}>{status}</span>;
+    return <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(100, 116, 139, 0.1)', color: 'var(--text-dim)', border: '1px solid rgba(100, 116, 139, 0.2)' }}>{status}</span>;
   };
 
   const getRiskBadge = (risk) => {
@@ -79,7 +80,7 @@ export default function AdminAnalysesPage() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1400, margin: '0 auto', color: '#f8fafc' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1400, margin: '0 auto', color: 'var(--text)' }}>
       
       <style>{`
         @keyframes pulse {
@@ -88,20 +89,20 @@ export default function AdminAnalysesPage() {
         }
       `}</style>
 
-      <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 8, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--card-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>Analysis Pipeline</h2>
-            <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>Monitor and override AI processing jobs.</div>
+            <div style={{ fontSize: 13, color: 'var(--text-faint)', marginTop: 4 }}>Monitor and override AI processing jobs.</div>
           </div>
           <div style={{ position: 'relative' }}>
-            <svg style={{ position: 'absolute', left: 10, top: 8, color: '#64748b' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <svg style={{ position: 'absolute', left: 10, top: 8, color: 'var(--text-faint)' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
             <input 
               type="text" 
               placeholder="Search analyses..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 6, padding: '8px 12px 8px 34px', color: '#f8fafc', fontSize: 13, width: 260, outline: 'none' }}
+              style={{ background: 'var(--input-bg)', border: '1px solid var(--input-border)', borderRadius: 6, padding: '8px 12px 8px 34px', color: 'var(--text)', fontSize: 13, width: 260, outline: 'none' }}
             />
           </div>
         </div>
@@ -109,33 +110,33 @@ export default function AdminAnalysesPage() {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
-              <tr style={{ background: '#1e293b' }}>
-                <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase' }}>Analysis ID</th>
-                <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase' }}>Timestamp</th>
-                <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase' }}>User</th>
-                <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase' }}>Status</th>
-                <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase' }}>Risk Level</th>
+              <tr style={{ background: 'var(--input-bg)' }}>
+                <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Analysis ID</th>
+                <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Timestamp</th>
+                <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase' }}>User</th>
+                <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Status</th>
+                <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Risk Level</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>Loading pipeline...</td></tr>
+                <tr><td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-faint)' }}>Loading pipeline...</td></tr>
               ) : filteredAnalyses.length > 0 ? filteredAnalyses.map((a, i) => (
                 <tr 
                   key={a.analysisId} 
                   onClick={() => handleRowClick(a)}
-                  style={{ borderBottom: '1px solid #1e293b', background: i % 2 === 0 ? 'transparent' : 'rgba(30, 41, 59, 0.3)', cursor: 'pointer', transition: 'background 0.2s' }}
-                  onMouseOver={e => e.currentTarget.style.background = '#1e293b'}
-                  onMouseOut={e => e.currentTarget.style.background = i % 2 === 0 ? 'transparent' : 'rgba(30, 41, 59, 0.3)'}
+                  style={{ borderBottom: '1px solid var(--card-border)', background: i % 2 === 0 ? 'transparent' : 'var(--bg-hover)', cursor: 'pointer', transition: 'background 0.2s' }}
+                  onMouseOver={e => e.currentTarget.style.background = 'var(--input-bg)'}
+                  onMouseOut={e => e.currentTarget.style.background = i % 2 === 0 ? 'transparent' : 'var(--bg-hover)'}
                 >
-                  <td style={{ padding: '16px 24px', fontSize: 13, fontFamily: 'monospace', color: '#64748b' }}>{a.analysisId.substring(0,8)}</td>
-                  <td style={{ padding: '16px 24px', fontSize: 13, color: '#cbd5e1' }}>{new Date(a.createdAt).toLocaleString()}</td>
-                  <td style={{ padding: '16px 24px', fontSize: 13, color: '#f8fafc' }}>{a.userEmail || a.userId}</td>
+                  <td style={{ padding: '16px 24px', fontSize: 13, fontFamily: 'monospace', color: 'var(--text-faint)' }}>{a.analysisId.substring(0,8)}</td>
+                  <td style={{ padding: '16px 24px', fontSize: 13, color: 'var(--text-dim)' }}>{new Date(a.createdAt).toLocaleString()}</td>
+                  <td style={{ padding: '16px 24px', fontSize: 13, color: 'var(--text)' }}>{a.userEmail || a.userId}</td>
                   <td style={{ padding: '16px 24px' }}>{getStatusBadge(a.status)}</td>
                   <td style={{ padding: '16px 24px', fontSize: 13 }}>{getRiskBadge(a.riskLevel)}</td>
                 </tr>
               )) : (
-                <tr><td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>No analyses found.</td></tr>
+                <tr><td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-faint)' }}>No analyses found.</td></tr>
               )}
             </tbody>
           </table>
@@ -144,14 +145,14 @@ export default function AdminAnalysesPage() {
 
       {/* Inspection Modal */}
       {selectedAnalysis && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(2, 6, 23, 0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }}>
-          <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, width: '100%', maxWidth: 900, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }}>
+          <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, width: '100%', maxWidth: 900, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)' }}>
             
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: '#f8fafc' }}>
-                Inspect Analysis <span style={{ color: '#64748b', fontFamily: 'monospace', fontSize: 14 }}>{selectedAnalysis.analysisId.substring(0,8)}</span>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--card-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: 'var(--text)' }}>
+                Inspect Analysis <span style={{ color: 'var(--text-faint)', fontFamily: 'monospace', fontSize: 14 }}>{selectedAnalysis.analysisId.substring(0,8)}</span>
               </h3>
-              <button onClick={() => setSelectedAnalysis(null)} style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer' }}>
+              <button onClick={() => setSelectedAnalysis(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-faint)', cursor: 'pointer' }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
             </div>
@@ -161,23 +162,27 @@ export default function AdminAnalysesPage() {
               {/* Imagery Section */}
               <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8 }}>Original Upload</div>
-                  <div style={{ width: '100%', height: 240, background: '#1e293b', borderRadius: 8, overflow: 'hidden', border: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {selectedAnalysis.imageUrl ? (
-                      <img src={selectedAnalysis.imageUrl} alt="Original" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 8 }}>Original Upload</div>
+                  <div style={{ width: '100%', height: 240, background: 'var(--input-bg)', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--input-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {selectedAnalysis.originalFileUrl || selectedAnalysis.fileUrl || selectedAnalysis.imageUrl ? (
+                      selectedAnalysis.fileType === 'video' ? (
+                        <video src={selectedAnalysis.originalFileUrl || selectedAnalysis.fileUrl} controls style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      ) : (
+                        <img src={selectedAnalysis.originalFileUrl || selectedAnalysis.fileUrl || selectedAnalysis.imageUrl} alt="Original" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      )
                     ) : (
-                      <span style={{ color: '#64748b', fontSize: 13 }}>Image Not Available</span>
+                      <span style={{ color: 'var(--text-faint)', fontSize: 13 }}>Media Not Available</span>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8 }}>AI Processed Mask</div>
-                  <div style={{ width: '100%', height: 240, background: '#1e293b', borderRadius: 8, overflow: 'hidden', border: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 8 }}>AI Processed Mask</div>
+                  <div style={{ width: '100%', height: 240, background: 'var(--input-bg)', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--input-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {selectedAnalysis.annotatedImageUrl ? (
                       <img src={selectedAnalysis.annotatedImageUrl} alt="Processed" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     ) : (
-                      <span style={{ color: '#64748b', fontSize: 13 }}>Processing Not Completed</span>
+                      <span style={{ color: 'var(--text-faint)', fontSize: 13 }}>Processing Not Completed</span>
                     )}
                   </div>
                 </div>
@@ -189,32 +194,34 @@ export default function AdminAnalysesPage() {
                   <h4 style={{ fontSize: 14, fontWeight: 600, color: '#3b82f6', margin: '0 0 12px 0' }}>Manual Override</h4>
                   
                   <div style={{ marginBottom: 16 }}>
-                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>Processing Status</label>
-                    <select 
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', marginBottom: 6 }}>Processing Status</label>
+                    <CustomSelect 
                       value={overrideForm.status} 
-                      onChange={e => setOverrideForm({...overrideForm, status: e.target.value})} 
-                      style={{ width: '100%', padding: '10px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#f8fafc', fontSize: 14, outline: 'none' }}
-                    >
-                      <option value="Pending">Pending</option>
-                      <option value="Processing">Processing</option>
-                      <option value="Completed">Completed</option>
-                      <option value="Failed">Failed</option>
-                    </select>
+                      onChange={val => setOverrideForm({...overrideForm, status: val})} 
+                      style={{ padding: '4px 0' }}
+                      options={[
+                        { value: 'Pending', label: 'Pending' },
+                        { value: 'Processing', label: 'Processing' },
+                        { value: 'Completed', label: 'Completed' },
+                        { value: 'Failed', label: 'Failed' }
+                      ]}
+                    />
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>Risk Level</label>
-                    <select 
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', marginBottom: 6 }}>Risk Level</label>
+                    <CustomSelect 
                       value={overrideForm.riskLevel} 
-                      onChange={e => setOverrideForm({...overrideForm, riskLevel: e.target.value})} 
-                      style={{ width: '100%', padding: '10px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#f8fafc', fontSize: 14, outline: 'none' }}
-                    >
-                      <option value="Minimal">Minimal</option>
-                      <option value="Low">Low</option>
-                      <option value="Moderate">Moderate</option>
-                      <option value="High">High</option>
-                      <option value="Critical">Critical</option>
-                    </select>
+                      onChange={val => setOverrideForm({...overrideForm, riskLevel: val})} 
+                      style={{ padding: '4px 0' }}
+                      options={[
+                        { value: 'Minimal', label: 'Minimal' },
+                        { value: 'Low', label: 'Low' },
+                        { value: 'Moderate', label: 'Moderate' },
+                        { value: 'High', label: 'High' },
+                        { value: 'Critical', label: 'Critical' }
+                      ]}
+                    />
                   </div>
                 </div>
 
@@ -222,14 +229,14 @@ export default function AdminAnalysesPage() {
                   <button 
                     onClick={() => setSelectedAnalysis(null)} 
                     disabled={saving}
-                    style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid #334155', color: '#cbd5e1', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer' }}
+                    style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid var(--input-border)', color: 'var(--text-dim)', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer' }}
                   >
                     Cancel
                   </button>
                   <button 
                     onClick={handleSaveOverride} 
                     disabled={saving}
-                    style={{ flex: 1, padding: '12px', background: '#ef4444', color: '#ffffff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer' }}
+                    style={{ flex: 1, padding: '12px', background: '#ef4444', color: 'var(--text)', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer' }}
                   >
                     {saving ? 'Saving...' : 'Force Update'}
                   </button>
