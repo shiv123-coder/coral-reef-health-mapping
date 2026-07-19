@@ -27,9 +27,6 @@ def _allowed_file(filename: str) -> bool:
     return ext in {"jpg", "jpeg", "png", "webp", "mp4", "avi", "mov", "mkv"}
 
 
-async def dummy_user():
-    return {"uid": "test_uid", "role": "user", "email": "test@example.com"}
-
 @router.post("/upload")
 @limiter.limit("30/minute")
 async def upload_and_analyze(
@@ -37,7 +34,7 @@ async def upload_and_analyze(
     file: UploadFile = File(...),
     latitude: Optional[float] = Form(None),
     longitude: Optional[float] = Form(None),
-    user: dict = Depends(dummy_user),
+    user: dict = Depends(get_current_user),
 ):
     """Upload image or video, run AI pipeline, store results."""
     settings = get_settings()
