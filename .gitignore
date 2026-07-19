@@ -45,3 +45,5 @@ docs/interview/
 test_assets/
 output/
 test.png
+test_api.py
+*.pdf
