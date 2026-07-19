@@ -202,7 +202,15 @@ export default function UploadPage() {
         throw new Error('Server did not wake up in time. Please try again.');
       }
     } catch (err) {
-      setError(err.response?.data?.detail || err.message);
+      let errorMsg = err.message;
+      if (err.response?.data?.detail) {
+        if (Array.isArray(err.response.data.detail)) {
+          errorMsg = err.response.data.detail.map(e => e.msg).join(', ');
+        } else {
+          errorMsg = err.response.data.detail;
+        }
+      }
+      setError(errorMsg);
     } finally {
       setLoading(false);
       setLoadingMsg('');
