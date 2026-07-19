@@ -18,7 +18,6 @@ import AdminAnalysesPage from './pages/AdminAnalysesPage';
 import AdminSettingsPage from './pages/AdminSettingsPage';
 import AdminUsersPage from './pages/AdminUsersPage';
 import AdminAuditLogsPage from './pages/AdminAuditLogsPage';
-import AdminExportPage from './pages/AdminExportPage';
 import AdminSupportPage from './pages/AdminSupportPage';
 import SettingsPage from './pages/SettingsPage';
 import PublicReportPage from './pages/PublicReportPage';
@@ -53,7 +52,6 @@ export default function App() {
             <Route path="users" element={<AdminUsersPage />} />
             <Route path="analyses" element={<AdminAnalysesPage />} />
             <Route path="audit" element={<AdminAuditLogsPage />} />
-            <Route path="export" element={<AdminExportPage />} />
             <Route path="support" element={<AdminSupportPage />} />
             <Route path="settings" element={<AdminSettingsPage />} />
           </Route>
