@@ -83,6 +83,10 @@ export default function LoginPage() {
         setError('Invalid email or password.');
       } else if (err.code === 'auth/user-not-found') {
         setError('No account found with this email.');
+      } else if (err.code === 'auth/user-disabled') {
+        setError('Account suspended. Please contact the administrator.');
+      } else if (err.code === 'auth/network-request-failed') {
+        setError('Network error. The system might be offline or unreachable.');
       } else if (err.code === 'auth/too-many-requests') {
         setError('Too many failed login attempts. Please try again later.');
       } else {
@@ -107,7 +111,13 @@ export default function LoginPage() {
       }
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message);
+      if (err.code === 'auth/user-disabled') {
+        setError('Account suspended. Please contact the administrator.');
+      } else if (err.code === 'auth/network-request-failed') {
+        setError('Network error. The system might be offline or unreachable.');
+      } else {
+        setError(err.message);
+      }
     }
   };
 

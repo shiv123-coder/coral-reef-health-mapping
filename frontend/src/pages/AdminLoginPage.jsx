@@ -34,6 +34,10 @@ export default function AdminLoginPage() {
     } catch (err) {
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
         setError('Invalid admin credentials.');
+      } else if (err.code === 'auth/user-disabled') {
+        setError('Your admin account has been suspended.');
+      } else if (err.code === 'auth/network-request-failed') {
+        setError('Network error. The system might be offline or unreachable.');
       } else {
         setError(err.message || 'An error occurred during authentication.');
       }
