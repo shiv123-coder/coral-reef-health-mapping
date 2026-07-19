@@ -92,12 +92,6 @@ Security is deeply integrated into CoralAI to ensure data integrity and privacy:
 - **Edge Deployment** on NVIDIA Jetson for real-time field use.
 - **3D Reef Reconstruction** from stereo video footage.
 
-<br />
-
-## 📄 License
-MIT License
-
-<br />
 
 <div align="center">
   <p><i>Developed with ❤️ by Shiv</i></p>
