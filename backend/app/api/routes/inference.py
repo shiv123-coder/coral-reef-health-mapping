@@ -27,7 +27,7 @@ def _allowed_file(filename: str) -> bool:
 
 
 @router.post("/upload")
-@limiter.limit("5/minute")
+@limiter.limit("30/minute")
 async def upload_and_analyze(
     request: Request,
     file: UploadFile = File(...),
