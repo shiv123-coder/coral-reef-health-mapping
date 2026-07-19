@@ -5,16 +5,9 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
 const api = axios.create({
   baseURL: `${API_BASE}/api/v1`,
-  headers: { 'Content-Type': 'application/json' },
 });
 
 api.interceptors.request.use(async (config) => {
-  if (config.data instanceof FormData) {
-    // Delete the default application/json header so the browser
-    // can automatically set multipart/form-data with the correct boundary
-    delete config.headers['Content-Type'];
-  }
-  
   const user = auth.currentUser;
   if (user) {
     const token = await user.getIdToken();
