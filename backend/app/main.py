@@ -36,7 +36,7 @@ def seed_admin_account():
                 display_name="System Admin",
             )
             uid = user_record.uid
-            print(f"✅ Admin Firebase Auth account created: {settings.admin_email}")
+            print(f"Admin Firebase Auth account created: {settings.admin_email}")
 
         profile = get_user_profile(uid)
         if not profile:
@@ -50,12 +50,12 @@ def seed_admin_account():
                 "department": "Administration",
                 "country": "India",
             })
-            print(f"✅ Admin Firestore profile seeded")
+            print(f"Admin Firestore profile seeded")
         elif profile.get("role") != "admin":
             from app.core.firebase import update_user_profile
             update_user_profile(uid, {"role": "admin"})
     except Exception as e:
-        print(f"ℹ Admin seed skipped: {e}")
+        print(f"Admin seed skipped: {e}")
 
 
 @asynccontextmanager
@@ -72,7 +72,7 @@ async def lifespan(app: FastAPI):
             api_secret=settings.cloudinary_api_secret,
             secure=True,
         )
-        print("✅ Cloudinary initialized")
+        print("Cloudinary initialized")
         
     seed_admin_account()
     yield

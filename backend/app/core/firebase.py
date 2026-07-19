@@ -27,7 +27,7 @@ def init_firebase():
         firebase_admin.initialize_app(cred, {"projectId": settings.firebase_project_id})
     else:
         # Allow startup without Firebase for local ML-only testing
-        print("⚠ Firebase credentials not configured — auth/db disabled until .env.production is set")
+        print("Firebase credentials not configured — auth/db disabled until .env.production is set")
         _initialized = True
         return None
 

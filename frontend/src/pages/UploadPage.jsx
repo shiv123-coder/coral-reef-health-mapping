@@ -185,9 +185,10 @@ export default function UploadPage() {
           setResult(data);
           success = true;
         } catch (err) {
-          const isNetworkError = !err.response || err.message === 'Network Error' || err.message.includes('timeout') || (err.response.status >= 502 && err.response.status <= 504);
+          const isColdStart = err.response && (err.response.status === 502 || err.response.status === 503 || err.response.status === 504);
+          const isTimeout = err.message && err.message.toLowerCase().includes('timeout');
           
-          if (isNetworkError && Date.now() - startTime < MAX_WAIT) {
+          if ((isColdStart || isTimeout) && Date.now() - startTime < MAX_WAIT) {
             if (attempt === 1) setLoadingMsg('Waking up AI servers. This may take up to 6 minutes...');
             else setLoadingMsg(`Still waking up servers (Attempt ${attempt}). Please hold on...`);
             await new Promise(resolve => setTimeout(resolve, 15000));
@@ -242,7 +243,7 @@ export default function UploadPage() {
     }
   }
 
-  const confidence = result ? Math.min(99, Math.round(88 + Math.random() * 11 * 10) / 10) : 0;
+  const confidence = result?.classification?.confidence ? Math.round(result.classification.confidence * 100) : 0;
   const circumference = 2 * Math.PI * 50;
   const offset = circumference - (confidence / 100) * circumference;
   
