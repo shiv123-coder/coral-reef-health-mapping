@@ -182,44 +182,57 @@ export default function DashboardPage() {
               <Link to="/history" style={{ fontSize: 12.5, color: 'var(--cyan)' }}>View All</Link>
             </div>
             
-            <div style={{
-              position: 'relative', height: 200, borderRadius: 12, overflow: 'hidden', marginBottom: 14,
-              background: 'radial-gradient(ellipse at 30% 30%, rgba(255,180,120,0.25), transparent 55%), radial-gradient(ellipse at 70% 60%, rgba(90,170,255,0.2), transparent 55%), linear-gradient(160deg,#0d3050,#0a2038)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>
-              {recent?.originalUrl ? (
-                <img src={recent.originalUrl} alt="Recent" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : null}
-              <span style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(94,224,145,0.16)', border: '1px solid rgba(94,224,145,0.4)', color: 'var(--green)', fontSize: 11.5, fontWeight: 700, padding: '5px 12px', borderRadius: 99 }}>
-                {recent ? recent.riskLevel : 'Healthy'}
-              </span>
-            </div>
-            
-            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{recent?.fileName || 'GOPR1234_20250524_104512.jpg'}</div>
-            <div style={{ fontSize: 12, color: 'var(--text-faint)', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-              {recent ? new Date(recent.createdAt).toLocaleString() : '24 May 2025 • 10:45 AM'}
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--text-faint)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 6-9 12-9 12S3 16 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              Great Barrier Reef, Australia
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
-              <div style={{ background: 'var(--input-bg)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 12px' }}>
-                <div style={{ fontSize: 11, color: 'var(--text-faint)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>Coverage</div>
-                <div style={{ fontSize: 15, fontWeight: 700 }}>2.43 m²</div>
+            {recent ? (
+              <>
+                <div style={{
+                  position: 'relative', height: 200, borderRadius: 12, overflow: 'hidden', marginBottom: 14,
+                  background: 'radial-gradient(ellipse at 30% 30%, rgba(255,180,120,0.25), transparent 55%), radial-gradient(ellipse at 70% 60%, rgba(90,170,255,0.2), transparent 55%), linear-gradient(160deg,#0d3050,#0a2038)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  {recent.originalFileUrl ? (
+                    <img src={recent.originalFileUrl} alt="Recent" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : recent.annotatedImageUrl ? (
+                    <img src={recent.annotatedImageUrl} alt="Recent" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : null}
+                  <span style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(94,224,145,0.16)', border: '1px solid rgba(94,224,145,0.4)', color: 'var(--green)', fontSize: 11.5, fontWeight: 700, padding: '5px 12px', borderRadius: 99 }}>
+                    {recent.riskLevel || 'Healthy'}
+                  </span>
+                </div>
+                
+                <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{recent.fileName}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-faint)', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                  {new Date(recent.createdAt).toLocaleString()}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-faint)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 6-9 12-9 12S3 16 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  {recent.latitude && recent.longitude ? `${recent.latitude.toFixed(4)}, ${recent.longitude.toFixed(4)}` : 'Location Unavailable'}
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
+                  <div style={{ background: 'var(--input-bg)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 12px' }}>
+                    <div style={{ fontSize: 11, color: 'var(--text-faint)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>Total Coral</div>
+                    <div style={{ fontSize: 15, fontWeight: 700 }}>{((recent.healthyCoralPct || 0) + (recent.bleachedCoralPct || 0) + (recent.deadCoralPct || 0)).toFixed(1)}%</div>
+                  </div>
+                  <div style={{ background: 'var(--input-bg)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 12px' }}>
+                    <div style={{ fontSize: 11, color: 'var(--text-faint)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2C9 2 7 5 7 8c0 2 1 3 1 5 0 3-2 4-2 7 0 1 1 2 2 2s2-1 2-2c0-2 1-3 2-3s2 1 2 3c0 1 1 2 2 2s2-1 2-2c0-3-2-4-2-7 0-2 1-3 1-5 0-3-2-6-5-6z"/></svg>Bleaching %</div>
+                    <div style={{ fontSize: 15, fontWeight: 700 }}>{recent.bleachedCoralPct || 0}%</div>
+                  </div>
+                  <div style={{ background: 'var(--input-bg)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 12px' }}>
+                    <div style={{ fontSize: 11, color: 'var(--text-faint)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>Dead Coral</div>
+                    <div style={{ fontSize: 15, fontWeight: 700 }}>{recent.deadCoralPct || 0}%</div>
+                  </div>
+                </div>
+                <button onClick={() => navigate('/history')} className="btn btn-outline" style={{ width: '100%', padding: 11 }}>View Full Result <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+              </>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 280, color: 'var(--text-dim)' }}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" style={{ marginBottom: 16, opacity: 0.5 }}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>No Analyses Yet</div>
+                <div style={{ fontSize: 13, marginTop: 4 }}>Upload an image to see results here</div>
+                <button onClick={() => navigate('/upload')} className="btn btn-primary" style={{ marginTop: 20, padding: '8px 20px' }}>Upload Media</button>
               </div>
-              <div style={{ background: 'var(--input-bg)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 12px' }}>
-                <div style={{ fontSize: 11, color: 'var(--text-faint)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2C9 2 7 5 7 8c0 2 1 3 1 5 0 3-2 4-2 7 0 1 1 2 2 2s2-1 2-2c0-2 1-3 2-3s2 1 2 3c0 1 1 2 2 2s2-1 2-2c0-3-2-4-2-7 0-2 1-3 1-5 0-3-2-6-5-6z"/></svg>Bleaching %</div>
-                <div style={{ fontSize: 15, fontWeight: 700 }}>{recent ? recent.bleachedCoralPct : '22.3'}%</div>
-              </div>
-              <div style={{ background: 'var(--input-bg)', border: '1px solid var(--card-border)', borderRadius: 11, padding: '10px 12px' }}>
-                <div style={{ fontSize: 11, color: 'var(--text-faint)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>Confidence</div>
-                <div style={{ fontSize: 15, fontWeight: 700 }}>97.6%</div>
-              </div>
-            </div>
-            <button onClick={() => navigate('/history')} className="btn btn-outline" style={{ width: '100%', padding: 11 }}>View Full Result <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            )}
           </div>
 
           <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 22 }}>
