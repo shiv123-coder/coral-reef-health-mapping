@@ -51,7 +51,7 @@ CoralAI is powered by a robust and specialized AI pipeline:
 <br />
 
 <div align="center">
-  <img src="ml/data/yolo/images/train/healthy_coral_001.jpg" alt="Healthy Coral Sample" width="800" style="border-radius: 8px;" />
+  <img src="docs/diagrams/healthy_coral_001.jpg" alt="Healthy Coral Sample" width="800" style="border-radius: 8px;" />
 </div>
 
 <br />
