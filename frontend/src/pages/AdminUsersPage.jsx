@@ -21,7 +21,11 @@ export default function AdminUsersPage() {
       const usersData = snapshot.docs.map(doc => doc.data());
       setUsers(usersData);
       setLoading(false);
-    }, console.error);
+    }, (err) => {
+      console.error(err);
+      alert("Error loading users: " + err.message);
+      setLoading(false);
+    });
 
     return () => unsubUsers();
   }, []);

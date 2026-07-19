@@ -6,7 +6,7 @@ service cloud.firestore {
     // Check if user is active
     function isActiveUser() {
       let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
-      return userDoc == null || userDoc.data.isActive != false;
+      return userDoc == null || !("isActive" in userDoc.data) || userDoc.data.isActive != false;
     }
 
     // Check if user is authenticated and active
