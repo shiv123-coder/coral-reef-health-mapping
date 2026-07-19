@@ -229,6 +229,13 @@ async def upload_and_analyze(
         notif_type="success"
     )
 
+    from app.core.firebase import notify_admins
+    notify_admins(
+        title="New User Upload",
+        message=f"User {user.get('email', '')} has uploaded a new file for analysis: {file.filename}",
+        notif_type="info"
+    )
+
     return {
         "analysisId": analysis_id,
         "reportId": report_id,
