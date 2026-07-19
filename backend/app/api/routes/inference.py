@@ -44,11 +44,15 @@ async def upload_and_analyze(
     # Offline Mode Check
     from app.core.firebase import init_firebase
     db = init_firebase()
-    config_doc = db.collection("global_config").document("system").get()
-    if config_doc.exists:
-        config = config_doc.to_dict()
-        if config.get("isOffline") and user.get("role") != "admin" and "admin" not in user.get("email", "").lower():
-            raise HTTPException(503, "System is currently undergoing maintenance and offline.")
+    if db:
+        try:
+            config_doc = db.collection("global_config").document("system").get()
+            if config_doc.exists:
+                config = config_doc.to_dict()
+                if config.get("isOffline") and user.get("role") != "admin" and "admin" not in user.get("email", "").lower():
+                    raise HTTPException(503, "System is currently undergoing maintenance and offline.")
+        except Exception as e:
+            print(f"Failed to check offline mode: {e}")
 
     analysis_id = str(uuid.uuid4())
     upload_dir = Path(settings.upload_dir) / user["uid"] / analysis_id
