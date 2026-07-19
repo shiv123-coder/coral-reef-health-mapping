@@ -123,10 +123,14 @@ async def upload_and_analyze(
             print(f"Cloudinary upload for original failed: {e}")
 
     qr_token = generate_qr_token()
+    report_id = str(uuid.uuid4())
 
     analysis_record = {
         "analysisId": analysis_id,
+        "reportId": report_id,
         "userId": user["uid"],
+        "userEmail": user.get("email", ""),
+        "userName": f"{user.get('firstName', '')} {user.get('lastName', '')}".strip(),
         "fileName": file.filename,
         "fileType": file_type,
         "exifVerified": exif_verified,
@@ -150,8 +154,7 @@ async def upload_and_analyze(
     }
 
     # AUTOMATED PDF GENERATION & PUBLIC HOSTING
-    
-    report_id = str(uuid.uuid4())
+
     report_dir = upload_dir.parent / "reports"
     report_dir.mkdir(parents=True, exist_ok=True)
     pdf_path = report_dir / f"report_{report_id}.pdf"

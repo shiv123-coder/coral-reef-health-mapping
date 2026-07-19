@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { adminGetAnalyses, adminOverrideReport } from '../services/api';
+import { adminGetAnalyses, adminOverrideReport, downloadPdf } from '../services/api';
 import CustomSelect from '../components/CustomSelect';
 
 export default function AdminAnalysesPage() {
@@ -59,6 +59,20 @@ export default function AdminAnalysesPage() {
       alert("Failed to override report: " + (e.response?.data?.detail || e.message));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const exportPdf = async (reportId) => {
+    try {
+      const res = await downloadPdf(reportId);
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `report_${reportId.slice(0, 8)}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      alert("Failed to download PDF: " + (e.response?.data?.detail || e.message));
     }
   };
 
@@ -131,7 +145,10 @@ export default function AdminAnalysesPage() {
                 >
                   <td style={{ padding: '16px 24px', fontSize: 13, fontFamily: 'monospace', color: 'var(--text-faint)' }}>{a.analysisId.substring(0,8)}</td>
                   <td style={{ padding: '16px 24px', fontSize: 13, color: 'var(--text-dim)' }}>{new Date(a.createdAt).toLocaleString()}</td>
-                  <td style={{ padding: '16px 24px', fontSize: 13, color: 'var(--text)' }}>{a.userEmail || a.userId}</td>
+                  <td style={{ padding: '16px 24px', fontSize: 13, color: 'var(--text)' }}>
+                    <div>{a.userEmail || a.userId}</div>
+                    {a.userName && <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>{a.userName}</div>}
+                  </td>
                   <td style={{ padding: '16px 24px' }}>{getStatusBadge(a.status)}</td>
                   <td style={{ padding: '16px 24px', fontSize: 13 }}>{getRiskBadge(a.riskLevel)}</td>
                 </tr>
@@ -225,7 +242,21 @@ export default function AdminAnalysesPage() {
                   </div>
                 </div>
 
-                <div style={{ marginTop: 'auto', display: 'flex', gap: 12 }}>
+                {selectedAnalysis.reportId ? (
+                  <button 
+                    onClick={() => exportPdf(selectedAnalysis.reportId)} 
+                    style={{ width: '100%', padding: '12px', background: 'var(--primary-500)', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 'auto' }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Download Report PDF
+                  </button>
+                ) : (
+                  <div style={{ padding: '12px', background: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-faint)', borderRadius: 6, fontSize: 12, textAlign: 'center', marginTop: 'auto' }}>
+                    PDF generation processing...
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: 12 }}>
                   <button 
                     onClick={() => setSelectedAnalysis(null)} 
                     disabled={saving}
