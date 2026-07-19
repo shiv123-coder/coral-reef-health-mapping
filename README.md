@@ -18,63 +18,87 @@
 <br />
 
 ## 🚀 Overview
-CoralAI utilizes a comprehensive **Vision-Based Deep Learning Framework** to analyze coral health and address the limitations of manual annotation.
-- **Semantic Segmentation:** Deploys state-of-the-art architectures (U-Net and DeepLabV3+) to classify individual pixels, providing precise area coverage percentages for Healthy Coral, Bleached Coral, Dead Coral, and Algae.
-- **End-to-End Pipeline:** From an intuitive React frontend to a high-performance FastAPI backend, users can seamlessly upload images, view real-time processing, and generate detailed PDF reports.
-- **Automated Pre-processing:** Utilizes computer vision techniques to automatically correct underwater color distortion, significantly improving model accuracy.
+CoralAI utilizes a comprehensive **Vision-Based Deep Learning Framework** to analyze coral health and address the limitations of manual annotation. Our system bridges the gap between raw underwater visual data and actionable ecological insights. 
+By employing a decoupled architecture with a modern frontend and high-performance ML backend, CoralAI delivers real-time processing, stunning visualizations, and comprehensive reporting.
 
 <br />
 
-## 🛠️ Architecture 
-
-The system is built on a modern, decoupled technology stack:
-- **Frontend:** React (Vite) featuring a glassmorphism UI, Context API for state management, and Leaflet for geospatial mapping.
-- **Backend:** FastAPI (Python) for asynchronous, high-performance REST APIs.
-- **Database & Auth:** Firebase Authentication and Firestore secured tightly with Role-Based Access Control (RBAC).
-- **ML Pipeline:** Optimized models for rapid inference and background processing.
+<div align="center">
+  <img src="docs/diagrams/algorithm_flowchart.png" alt="Algorithm Flowchart" width="800" />
+</div>
 
 <br />
 
-## ⚡ Quick Start
+## 🎯 Key Features & Capabilities
 
-### 1. Environment Setup
-```bash
-# Copy and configure environment variables
-cp .env.production.example .env.production
-```
-
-### 2. Backend Setup
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
-
-### 3. Frontend Setup
-```bash
-cd frontend
-npm install
-npm run dev
-```
+- **Real-Time Image Processing:** Upload underwater footage and receive instantaneous health analysis.
+- **Detailed PDF Reporting:** Generates downloadable reports summarizing reef health, area coverage, and anomaly detection.
+- **Automated Color Correction:** Enhances underwater imagery before analysis, mitigating distortion caused by water depth and lighting.
+- **Geospatial Mapping:** Interactive map visualization (via Leaflet) of analyzed reef locations.
 
 <br />
 
-## 🔐 Firebase Setup
-1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com).
-2. Enable **Authentication** (Email/Password) and **Firestore**.
-3. Generate a service account JSON and save it as `backend/firebase-service-account.json`.
-4. Deploy security rules: `firebase deploy --only firestore:rules`
-5. Update environment variables with your Web App config.
+## 🧠 Algorithms & Machine Learning Pipeline
+
+CoralAI is powered by a robust and specialized AI pipeline:
+- **YOLO (You Only Look Once):** Deployed for rapid object detection, identifying corals, rocks, sand, and other underwater elements with high precision.
+- **U-Net & DeepLabV3+:** State-of-the-art semantic segmentation architectures utilized to classify individual pixels. This provides precise area coverage percentages for:
+  - 🟢 **Healthy Coral**
+  - 🟡 **Bleached Coral**
+  - 🔴 **Dead Coral**
+  - 🟤 **Algae**
+
+<br />
+
+<div align="center">
+  <img src="ml/data/yolo/images/train/healthy_coral_001.jpg" alt="Healthy Coral Sample" width="800" style="border-radius: 8px;" />
+</div>
+
+<br />
+
+## 🛠️ Tools & Technologies Used
+
+The project is built on a modern, scalable technology stack:
+
+- **Frontend:** 
+  - **React (Vite)** with an attractive Glassmorphism UI
+  - **Context API** for efficient state management
+  - **Leaflet** for interactive geospatial mapping
+- **Backend:** 
+  - **FastAPI (Python)** for asynchronous, high-performance REST APIs
+  - **Uvicorn** for ASGI server hosting
+- **Machine Learning:**
+  - **PyTorch / TensorFlow**
+  - **YOLOv8** (Object Detection)
+  - **U-Net / DeepLabV3+** (Semantic Segmentation)
+- **Database & Authentication:** 
+  - **Firebase Authentication**
+  - **Firestore (NoSQL)**
+
+<br />
+
+## 🔐 Security & Role-Based Access Control (RBAC)
+
+Security is deeply integrated into CoralAI to ensure data integrity and privacy:
+- **Role-Based Access Control (RBAC):** Distinct access levels for Standard Users and Administrators.
+- **Admin Portal:** Authorized personnel can manage datasets, view global statistics, and monitor system health.
+- **Firestore Security Rules:** Strict rules are implemented to prevent unauthorized access or modification of the underlying database.
 
 <br />
 
 ## 🔮 Future Scope
-- **Multi-spectral satellite integration** (Sentinel-2) for macro-level mapping.
-- **Temporal bleaching trend prediction** using LSTM networks.
-- **Edge deployment** on NVIDIA Jetson for real-time field use.
-- **3D reef reconstruction** from stereo video footage.
+- **Multi-spectral Satellite Integration** (Sentinel-2) for macro-level mapping.
+- **Temporal Bleaching Trend Prediction** using LSTM networks.
+- **Edge Deployment** on NVIDIA Jetson for real-time field use.
+- **3D Reef Reconstruction** from stereo video footage.
 
 <br />
 
 ## 📄 License
 MIT License
+
+<br />
+
+<div align="center">
+  <p><i>Developed with ❤️ by Shiv</i></p>
+</div>
