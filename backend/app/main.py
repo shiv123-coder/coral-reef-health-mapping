@@ -91,7 +91,6 @@ from fastapi.responses import JSONResponse
 
 async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded):
     response = _rate_limit_exceeded_handler(request, exc)
-    # _rate_limit_exceeded_handler returns a Response, we just need to add headers
     if isinstance(response, JSONResponse):
         response.headers["Access-Control-Allow-Origin"] = "*"
         response.headers["Access-Control-Allow-Methods"] = "*"
@@ -99,6 +98,21 @@ async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded):
     return response
 
 app.add_exception_handler(RateLimitExceeded, custom_rate_limit_handler)
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    import traceback
+    print(f"UNHANDLED EXCEPTION: {exc}")
+    traceback.print_exc()
+    response = JSONResponse(
+        status_code=500,
+        content={"detail": f"Server Error: {str(exc)}"}
+    )
+    # Explicitly add CORS headers just in case CORSMiddleware misses it
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    return response
 
 settings = get_settings()
 
