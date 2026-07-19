@@ -9,6 +9,13 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
+  if (config.data instanceof FormData) {
+    // Delete the default application/json header so the browser
+    // can automatically set multipart/form-data with the correct boundary
+    delete config.headers['Content-Type'];
+    delete config.headers.common['Content-Type'];
+  }
+  
   const user = auth.currentUser;
   if (user) {
     const token = await user.getIdToken();
@@ -24,18 +31,14 @@ export const uploadFile = async (file, latitude, longitude) => {
   formData.append('file', file);
   if (latitude != null && latitude !== '') formData.append('latitude', latitude);
   if (longitude != null && longitude !== '') formData.append('longitude', longitude);
-  const { data } = await api.post('/inference/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  const { data } = await api.post('/inference/upload', formData);
   return data;
 };
 
 export const liveInference = async (blob) => {
   const formData = new FormData();
   formData.append('file', blob, 'live.jpg');
-  const { data } = await api.post('/inference/live', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  const { data } = await api.post('/inference/live', formData);
   return data;
 };
 
