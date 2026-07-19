@@ -58,9 +58,8 @@ export default function AdminPage() {
   const riskPriority = { Critical: 4, High: 3, Moderate: 2, Low: 1, Minimal: 0 };
   const worstRisk = analyses.length ? analyses.reduce((worst, a) => (riskPriority[a.riskLevel] || 0) > (riskPriority[worst] || 0) ? (a.riskLevel || 'Minimal') : worst, 'Minimal') : 'N/A';
 
-  // Group analyses by date for time series chart
+  // Group analyses by date for time series chart (padding last 7 days)
   const timeSeriesData = useMemo(() => {
-    if (!analyses || analyses.length === 0) return [];
     const dateMap = {};
     const sorted = [...analyses].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
     
@@ -78,13 +77,35 @@ export default function AdminPage() {
       cumulativeAnalyses += 1;
       dateMap[dateStr].cumulative = cumulativeAnalyses;
     });
-    
-    return Object.values(dateMap).map(day => ({
-      name: day.name,
-      dailyScans: day.count,
-      totalScans: day.cumulative,
-      avgHealth: Number((day.healthSum / day.count).toFixed(1))
-    }));
+
+    // Pad last 7 days
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      last7Days.push(dateStr);
+    }
+
+    let runningCumulative = 0;
+    return last7Days.map(dateStr => {
+      if (dateMap[dateStr]) {
+        runningCumulative = dateMap[dateStr].cumulative;
+        return {
+          name: dateStr,
+          dailyScans: dateMap[dateStr].count,
+          totalScans: runningCumulative,
+          avgHealth: Number((dateMap[dateStr].healthSum / dateMap[dateStr].count).toFixed(1))
+        };
+      } else {
+        return {
+          name: dateStr,
+          dailyScans: 0,
+          totalScans: runningCumulative,
+          avgHealth: 0 // or we could carry over the last health, but 0 is okay for missing days
+        };
+      }
+    });
   }, [analyses]);
 
   return (
@@ -141,7 +162,7 @@ export default function AdminPage() {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" vertical={false} />
                 <XAxis dataKey="name" stroke="var(--text-faint)" fontSize={12} tickLine={false} axisLine={false} dy={10} />
-                <YAxis yAxisId="left" stroke="var(--text-faint)" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis yAxisId="left" allowDecimals={false} stroke="var(--text-faint)" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis yAxisId="right" orientation="right" stroke="var(--text-faint)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}%`} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--card-border)', borderRadius: 8, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.5)' }} 

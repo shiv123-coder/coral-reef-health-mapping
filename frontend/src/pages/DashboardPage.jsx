@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import NotificationDropdown from '../components/NotificationDropdown';
 import { getDashboardStats } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState(null);
@@ -47,6 +48,40 @@ export default function DashboardPage() {
   const recent = stats?.history?.[0];
   const riskLevel = stats?.riskLevel ?? 'N/A';
   const healthScore = Math.round(healthyPct + (sandPct * 0.5)); // Simple heuristic
+
+  const timeSeriesData = useMemo(() => {
+    const history = stats?.history || [];
+    const dateMap = {};
+    const sorted = [...history].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    
+    sorted.forEach(a => {
+      const d = new Date(a.createdAt);
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      
+      if (!dateMap[dateStr]) {
+        dateMap[dateStr] = { name: dateStr, count: 0, healthSum: 0 };
+      }
+      dateMap[dateStr].count += 1;
+      dateMap[dateStr].healthSum += (a.healthyCoralPct || 0);
+    });
+
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      last7Days.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+    }
+
+    return last7Days.map(dateStr => {
+      if (dateMap[dateStr]) {
+        return {
+          name: dateStr,
+          avgHealth: Number((dateMap[dateStr].healthSum / dateMap[dateStr].count).toFixed(1))
+        };
+      }
+      return { name: dateStr, avgHealth: 0 };
+    });
+  }, [stats]);
 
   return (
     <div className="layout" style={{ display: 'grid', gridTemplateColumns: '232px 1fr', minHeight: '100vh' }}>
@@ -320,20 +355,26 @@ export default function DashboardPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16, marginBottom: 16 }}>
           <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 22 }}>
             <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Coral Health Trend</h3>
-            <svg width="100%" height="190" viewBox="0 0 420 190" preserveAspectRatio="none">
-              <line x1="0" y1="10" x2="420" y2="10" stroke="var(--bg-hover)"/>
-              <line x1="0" y1="52" x2="420" y2="52" stroke="var(--bg-hover)"/>
-              <line x1="0" y1="94" x2="420" y2="94" stroke="var(--bg-hover)"/>
-              <line x1="0" y1="136" x2="420" y2="136" stroke="var(--bg-hover)"/>
-              <line x1="0" y1="178" x2="420" y2="178" stroke="var(--bg-hover)"/>
-              <polyline fill="none" stroke="#3b9eff" strokeWidth="2.5" points="10,55 60,50 110,58 160,48 210,60 260,52 310,44 360,50 410,46"/>
-              <polyline fill="none" stroke="#9b8cff" strokeWidth="2.5" points="10,110 60,100 110,120 160,105 210,118 260,100 310,112 360,98 410,108"/>
-              <polyline fill="none" stroke="#ff6b6b" strokeWidth="2.5" points="10,150 60,158 110,146 160,155 210,148 260,160 310,150 360,152 410,148"/>
-              <polyline fill="none" stroke="#5ee091" strokeWidth="2.5" points="10,165 60,160 110,168 160,158 210,166 260,155 310,163 360,157 410,160"/>
-              <g fill="#3b9eff"><circle cx="10" cy="55" r="3"/><circle cx="60" cy="50" r="3"/><circle cx="110" cy="58" r="3"/><circle cx="160" cy="48" r="3"/><circle cx="210" cy="60" r="3"/><circle cx="260" cy="52" r="3"/><circle cx="310" cy="44" r="3"/><circle cx="360" cy="50" r="3"/><circle cx="410" cy="46" r="3"/></g>
-            </svg>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-faint)', padding: '0 4px', marginTop: 8 }}>
-              <span>Dec</span><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span>
+            <div style={{ width: '100%', height: 210, marginLeft: -15 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorDashHealth" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" vertical={false} />
+                  <XAxis dataKey="name" stroke="var(--text-faint)" fontSize={11} tickLine={false} axisLine={false} dy={10} />
+                  <YAxis stroke="var(--text-faint)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}%`} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--card-border)', borderRadius: 8 }} 
+                    itemStyle={{ fontSize: 13, fontWeight: 500 }}
+                    labelStyle={{ color: 'var(--text-dim)', marginBottom: 4 }}
+                  />
+                  <Area type="monotone" dataKey="avgHealth" name="Avg Coral Health (%)" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorDashHealth)" />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
           

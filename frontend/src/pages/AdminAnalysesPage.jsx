@@ -1,6 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import { adminGetAnalyses, adminOverrideReport, downloadPdf } from '../services/api';
 import CustomSelect from '../components/CustomSelect';
+import { doc, deleteDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 export default function AdminAnalysesPage() {
   const [analyses, setAnalyses] = useState([]);
@@ -76,6 +78,18 @@ export default function AdminAnalysesPage() {
     }
   };
 
+  const handleDeleteAnalysis = async (e, analysisId) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to permanently delete this analysis?")) return;
+    
+    try {
+      await deleteDoc(doc(db, 'analyses', analysisId));
+      setAnalyses(prev => prev.filter(a => a.analysisId !== analysisId));
+    } catch (err) {
+      alert("Failed to delete analysis: " + err.message);
+    }
+  };
+
   const getStatusBadge = (status) => {
     const s = (status || 'Completed').toLowerCase();
     if (s === 'completed') return <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)' }}>Completed</span>;
@@ -130,11 +144,12 @@ export default function AdminAnalysesPage() {
                 <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase' }}>User</th>
                 <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Status</th>
                 <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Risk Level</th>
+                <th style={{ padding: '12px 24px', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-faint)' }}>Loading pipeline...</td></tr>
+                <tr><td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-faint)' }}>Loading pipeline...</td></tr>
               ) : filteredAnalyses.length > 0 ? filteredAnalyses.map((a, i) => (
                 <tr 
                   key={a.analysisId} 
@@ -151,9 +166,20 @@ export default function AdminAnalysesPage() {
                   </td>
                   <td style={{ padding: '16px 24px' }}>{getStatusBadge(a.status)}</td>
                   <td style={{ padding: '16px 24px', fontSize: 13 }}>{getRiskBadge(a.riskLevel)}</td>
+                  <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                    <button 
+                      onClick={(e) => handleDeleteAnalysis(e, a.analysisId)}
+                      title="Delete Analysis"
+                      style={{ background: 'transparent', border: 'none', color: 'var(--text-faint)', cursor: 'pointer', padding: 6, borderRadius: 6, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                      onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#ef4444'; }}
+                      onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-faint)'; }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                  </td>
                 </tr>
               )) : (
-                <tr><td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-faint)' }}>No analyses found.</td></tr>
+                <tr><td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-faint)' }}>No analyses found.</td></tr>
               )}
             </tbody>
           </table>

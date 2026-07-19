@@ -19,6 +19,7 @@ import AdminSettingsPage from './pages/AdminSettingsPage';
 import AdminUsersPage from './pages/AdminUsersPage';
 import AdminAuditLogsPage from './pages/AdminAuditLogsPage';
 import AdminSupportPage from './pages/AdminSupportPage';
+import AdminExportPage from './pages/AdminExportPage';
 import SettingsPage from './pages/SettingsPage';
 import PublicReportPage from './pages/PublicReportPage';
 import MaintenancePage from './pages/MaintenancePage';
@@ -54,6 +55,7 @@ export default function App() {
             <Route path="audit" element={<AdminAuditLogsPage />} />
             <Route path="support" element={<AdminSupportPage />} />
             <Route path="settings" element={<AdminSettingsPage />} />
+            <Route path="export" element={<AdminExportPage />} />
           </Route>
           <Route path="/maintenance" element={<MaintenancePage />} />
           <Route path="/" element={<RootRedirect />} />
