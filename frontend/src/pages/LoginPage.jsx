@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { signInWithEmailAndPassword, signInWithPopup, fetchSignInMethodsForEmail } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, fetchSignInMethodsForEmail, sendPasswordResetEmail } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
 
 export default function LoginPage() {
@@ -121,6 +121,30 @@ export default function LoginPage() {
     }
   };
 
+  const handleResetPassword = async () => {
+    if (!email.trim()) {
+      setError('Please enter your email address above first to reset your password.');
+      const form = document.getElementById('loginForm');
+      form.style.animation = 'shake .4s';
+      setTimeout(() => form.style.animation = '', 400);
+      return;
+    }
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      alert('Password reset email sent! Check your inbox.');
+      setError('');
+    } catch (err) {
+      if (err.code === 'auth/user-not-found') {
+        setError('No account found with this email.');
+      } else {
+        setError(err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="page" style={{
       position: 'relative', minHeight: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column',
@@ -236,7 +260,7 @@ export default function LoginPage() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '-8px 0 22px' }}>
-              <span style={{ fontSize: 12.5, color: 'var(--text-faint)' }}>Forgot Password? <strong style={{ color: 'var(--cyan)', fontWeight: 600 }}>Contact Admin</strong></span>
+              <span style={{ fontSize: 12.5, color: 'var(--text-faint)' }}>Forgot Password? <button type="button" onClick={handleResetPassword} style={{ color: 'var(--cyan)', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 12.5 }}>Reset Password</button></span>
             </div>
 
             <button type="submit" disabled={loading} style={{
