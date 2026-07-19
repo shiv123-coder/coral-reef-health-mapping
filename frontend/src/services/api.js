@@ -13,7 +13,6 @@ api.interceptors.request.use(async (config) => {
     // Delete the default application/json header so the browser
     // can automatically set multipart/form-data with the correct boundary
     delete config.headers['Content-Type'];
-    delete config.headers.common['Content-Type'];
   }
   
   const user = auth.currentUser;
