@@ -185,12 +185,12 @@ export default function UploadPage() {
           setResult(data);
           success = true;
         } catch (err) {
-          const isColdStart = err.response && (err.response.status === 502 || err.response.status === 503 || err.response.status === 504);
-          const isTimeout = err.message && err.message.toLowerCase().includes('timeout');
+          const isColdStart = err.response && (err.response.status >= 502 && err.response.status <= 504);
+          const isTimeout = err.message && (err.message.toLowerCase().includes('timeout') || err.message === 'Network Error' || !err.response);
           
-          if ((isColdStart || isTimeout) && Date.now() - startTime < MAX_WAIT) {
-            if (attempt === 1) setLoadingMsg('Waking up AI servers. This may take up to 6 minutes...');
-            else setLoadingMsg(`Still waking up servers (Attempt ${attempt}). Please hold on...`);
+          if ((isColdStart || isTimeout) && Date.now() - startTime < 180000) { // 3 minutes max wait
+            if (attempt === 1) setLoadingMsg('Waking up AI servers. This takes about 1-2 minutes...');
+            else setLoadingMsg(`Still waking up (Attempt ${attempt}). Please hold on...`);
             await new Promise(resolve => setTimeout(resolve, 15000));
           } else {
             throw err;
