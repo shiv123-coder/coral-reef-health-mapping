@@ -22,20 +22,16 @@ export default api;
 export const uploadFile = async (file, latitude, longitude) => {
   const formData = new FormData();
   formData.append('file', file);
-  if (latitude != null) formData.append('latitude', latitude);
-  if (longitude != null) formData.append('longitude', longitude);
-  const { data } = await api.post('/inference/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  if (latitude != null && latitude !== '') formData.append('latitude', latitude);
+  if (longitude != null && longitude !== '') formData.append('longitude', longitude);
+  const { data } = await api.post('/inference/upload', formData);
   return data;
 };
 
 export const liveInference = async (blob) => {
   const formData = new FormData();
   formData.append('file', blob, 'live.jpg');
-  const { data } = await api.post('/inference/live', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  const { data } = await api.post('/inference/live', formData);
   return data;
 };
 
