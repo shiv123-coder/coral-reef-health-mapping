@@ -12,6 +12,7 @@ export default function UploadPage() {
   const [lat, setLat] = useState('');
   const [lng, setLng] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingMsg, setLoadingMsg] = useState('');
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -165,15 +166,45 @@ export default function UploadPage() {
   const handleAnalyze = async () => {
     if (!file) return;
     setLoading(true);
+    setLoadingMsg('Executing Neural Analysis...');
     setError('');
+    
+    const startTime = Date.now();
+    const MAX_WAIT = 10 * 60 * 1000; // 10 minutes
+
     try {
       const processedFile = await compressImage(file);
-      const data = await uploadFile(processedFile, lat || null, lng || null);
-      setResult(data);
+      
+      let success = false;
+      let attempt = 0;
+      
+      while (!success && Date.now() - startTime < MAX_WAIT) {
+        try {
+          attempt++;
+          const data = await uploadFile(processedFile, lat || null, lng || null);
+          setResult(data);
+          success = true;
+        } catch (err) {
+          const isNetworkError = !err.response || err.message === 'Network Error' || err.message.includes('timeout') || (err.response.status >= 502 && err.response.status <= 504);
+          
+          if (isNetworkError && Date.now() - startTime < MAX_WAIT) {
+            if (attempt === 1) setLoadingMsg('Waking up AI servers. This may take up to 6 minutes...');
+            else setLoadingMsg(`Still waking up servers (Attempt ${attempt}). Please hold on...`);
+            await new Promise(resolve => setTimeout(resolve, 15000));
+          } else {
+            throw err;
+          }
+        }
+      }
+      
+      if (!success) {
+        throw new Error('Server did not wake up in time. Please try again.');
+      }
     } catch (err) {
       setError(err.response?.data?.detail || err.message);
     } finally {
       setLoading(false);
+      setLoadingMsg('');
     }
   };
 
@@ -372,7 +403,7 @@ export default function UploadPage() {
               ) : (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg>
               )}
-              {loading ? 'Executing Neural Analysis...' : 'Execute Analysis'}
+              {loading ? (loadingMsg.includes('Waking') ? 'Waking up servers...' : 'Executing Neural Analysis...') : 'Execute Analysis'}
             </button>
             
             {error && (
@@ -441,7 +472,9 @@ export default function UploadPage() {
                 </div>
                 <div>
                   <h3 style={{ color: 'var(--text)', fontSize: 17, fontWeight: 700, marginBottom: 6 }}>Deep Learning Pipeline Active</h3>
-                  <p style={{ fontSize: 13.5, maxWidth: 260, margin: '0 auto', color: 'var(--text-dim)', lineHeight: 1.5 }}>Extracting spatial features via 34-layer convolutional neural network...</p>
+                  <p style={{ fontSize: 13.5, maxWidth: 280, margin: '0 auto', color: 'var(--text-dim)', lineHeight: 1.5 }}>
+                    {loadingMsg || 'Extracting spatial features via 34-layer convolutional neural network...'}
+                  </p>
                 </div>
                 <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
               </motion.div>
