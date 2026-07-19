@@ -16,7 +16,8 @@ service cloud.firestore {
 
     // Check if user is admin or auditor
     function isElevated() {
-      return isAuthenticated() && (request.auth.token.role == "admin" || request.auth.token.role == "auditor");
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return isAuthenticated() && userDoc != null && (userDoc.data.role == "admin" || userDoc.data.role == "auditor");
     }
 
     match /users/{userId} {
