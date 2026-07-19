@@ -41,7 +41,6 @@ class Settings(BaseSettings):
         "VITE_PUBLIC_REPORT_BASE_URL",
         os.getenv("FRONTEND_URL", "") + "/public/report",
     )
-    hf_space_url: str = os.getenv("HF_SPACE_URL", "")
 
     cloudinary_cloud_name: str = os.getenv("CLOUDINARY_CLOUD_NAME", "")
     cloudinary_api_key: str = os.getenv("CLOUDINARY_API_KEY", "")
