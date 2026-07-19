@@ -65,6 +65,31 @@ class InferenceService:
                 "processed_image": image_path
             }
 
+        settings = get_settings()
+        if settings.hf_space_url:
+            import requests
+            import base64
+            with open(image_path, "rb") as f:
+                response = requests.post(
+                    f"{settings.hf_space_url.rstrip('/')}/predict",
+                    files={"file": f}
+                )
+            if response.status_code != 200:
+                raise Exception(f"ML Microservice Error ({response.status_code}): {response.text}")
+            
+            result = response.json()
+            if "annotated_image_base64" in result and result["annotated_image_base64"]:
+                img_data = base64.b64decode(result["annotated_image_base64"])
+                import uuid
+                annotated_path = str(self.output_dir / f"annotated_{uuid.uuid4().hex}.jpg")
+                with open(annotated_path, "wb") as f:
+                    f.write(img_data)
+                result["annotated_image"] = annotated_path
+                del result["annotated_image_base64"]
+                
+            result["processed_image"] = image_path
+            return result
+
         result = run_full_inference(image_path, output_dir=str(self.output_dir))
         return result
 
