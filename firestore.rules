@@ -3,9 +3,15 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Check if user is authenticated
+    // Check if user is active
+    function isActiveUser() {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return userDoc == null || userDoc.data.isActive != false;
+    }
+
+    // Check if user is authenticated and active
     function isAuthenticated() {
-      return request.auth != null;
+      return request.auth != null && isActiveUser();
     }
 
     // Check if user is admin or auditor

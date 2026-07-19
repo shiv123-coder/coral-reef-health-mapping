@@ -60,6 +60,19 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleToggleStatus = async (u) => {
+    const newStatus = u.isActive === false ? true : false;
+    const action = newStatus ? "activate" : "deactivate";
+    if (!window.confirm(`Are you sure you want to ${action} this account?`)) return;
+    
+    try {
+      await adminUpdateUser(u.uid, { isActive: newStatus });
+      setUsers(users => users.map(x => x.uid === u.uid ? { ...x, isActive: newStatus } : x));
+    } catch (e) {
+      alert(`Failed to ${action} user: ` + (e.response?.data?.detail || e.message));
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1400, margin: '0 auto', color: 'var(--text)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -108,10 +121,13 @@ export default function AdminUsersPage() {
                   </td>
                   <td style={{ padding: '16px 24px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-dim)' }}>
-                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981' }}></div> Active
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: u.isActive === false ? '#ef4444' : '#10b981' }}></div> {u.isActive === false ? 'Inactive' : 'Active'}
                     </div>
                   </td>
                   <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                    <button onClick={() => handleToggleStatus(u)} style={{ background: 'transparent', border: '1px solid var(--input-border)', color: 'var(--text-dim)', padding: '6px 12px', borderRadius: 4, fontSize: 12, fontWeight: 500, cursor: 'pointer', marginRight: 8, transition: 'all 0.2s' }} onMouseOver={e => e.target.style.background = 'var(--input-bg)'} onMouseOut={e => e.target.style.background = 'transparent'}>
+                      {u.isActive === false ? 'Activate' : 'Deactivate'}
+                    </button>
                     <button onClick={() => handleEditClick(u)} style={{ background: 'transparent', border: '1px solid var(--input-border)', color: 'var(--text-dim)', padding: '6px 12px', borderRadius: 4, fontSize: 12, fontWeight: 500, cursor: 'pointer', marginRight: 8, transition: 'all 0.2s' }} onMouseOver={e => e.target.style.background = 'var(--input-bg)'} onMouseOut={e => e.target.style.background = 'transparent'}>
                       Edit
                     </button>

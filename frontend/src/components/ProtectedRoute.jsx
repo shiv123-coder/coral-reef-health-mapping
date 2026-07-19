@@ -7,6 +7,7 @@ export function ProtectedRoute({ children, adminOnly = false }) {
 
   if (loading) return <LoadingSpinner text="Loading session..." />;
   if (isOffline && !isAdmin) return <Navigate to="/maintenance" replace />;
+  if (profile?.isActive === false) return <Navigate to="/login" replace />;
   if (!user) return <Navigate to="/login" replace />;
   if (adminOnly && !isAdmin) return <Navigate to="/dashboard" replace />;
 
