@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { auth } from '../firebase';
+import NotificationDropdown from './NotificationDropdown';
 
 export default function AdminLayout() {
   const { user } = useAuth();
@@ -136,6 +137,7 @@ export default function AdminLayout() {
             <span style={{ color: '#ef4444' }}>System Dashboard</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingRight: 90 }}>
+            <NotificationDropdown />
             <div style={{ padding: '6px 12px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: 20, fontSize: 12, fontWeight: 600, color: '#10b981', display: 'flex', alignItems: 'center', gap: 6 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }}></div>
               System Healthy
