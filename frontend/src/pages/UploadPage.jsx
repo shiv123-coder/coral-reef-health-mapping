@@ -170,7 +170,7 @@ export default function UploadPage() {
     setError('');
     
     const startTime = Date.now();
-    const MAX_WAIT = 10 * 60 * 1000; // 10 minutes
+    const MAX_WAIT = 15 * 60 * 1000; // 15 minutes
 
     try {
       const processedFile = await compressImage(file);
@@ -270,8 +270,10 @@ export default function UploadPage() {
                 <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--cyan)' }}>CoralNet-v2.4</span>
               </div>
               <div style={{ background: 'var(--input-bg)', border: '1px solid var(--card-border)', padding: '12px 16px', borderRadius: 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 11, color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>Accuracy Rate</span>
-                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--cyan)' }}>99.2%</span>
+                <span style={{ fontSize: 11, color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>Model Confidence</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: result ? 'var(--cyan)' : 'var(--text-dim)' }}>
+                  {result ? `${confidence}%` : '--'}
+                </span>
               </div>
             </div>
           </div>
