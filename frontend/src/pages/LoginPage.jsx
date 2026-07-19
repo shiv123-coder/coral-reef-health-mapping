@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { signInWithEmailAndPassword, signInWithPopup, fetchSignInMethodsForEmail, sendPasswordResetEmail } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, fetchSignInMethodsForEmail, sendPasswordResetEmail, getAdditionalUserInfo } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
 
 export default function LoginPage() {
@@ -100,7 +100,30 @@ export default function LoginPage() {
   const handleGoogle = async () => {
     setError('');
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const additionalInfo = getAdditionalUserInfo(result);
+      
+      if (additionalInfo?.isNewUser) {
+        // Automatically created a new auth account, but they should be using Signup page!
+        const email = result.user.email;
+        await result.user.delete();
+        await auth.signOut();
+        
+        // Let's check if they actually had a password account
+        try {
+          const methods = await fetchSignInMethodsForEmail(auth, email);
+          if (methods.includes('password')) {
+            setError('This email is already registered. Please sign in using your email and password.');
+            return;
+          }
+        } catch (e) {
+          // Ignore
+        }
+        
+        setError('No account found with this Google email. Please Create an Account first.');
+        return;
+      }
+
       const { getMe } = await import('../services/api');
       const profile = await getMe();
       const userEmail = auth.currentUser?.email;

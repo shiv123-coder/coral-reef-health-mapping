@@ -22,24 +22,35 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && (request.auth.uid == userId || isElevated());
+      // SECURITY AUDITOR FIX: Prevent users from updating their role, email or active status
+      allow update: if isAuthenticated() && (
+                      (request.auth.uid == userId && 
+                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'isActive', 'email']))
+                      || isElevated()
+                    );
+      allow create, delete: if isElevated();
     }
 
     match /analyses/{analysisId} {
-      // Elevated roles can read all. Regular users can only read their own.
       allow read: if isElevated() || (isAuthenticated() && resource.data.userId == request.auth.uid);
-      allow create: if isAuthenticated() 
-                    && request.resource.data.userId == request.auth.uid 
-                    && request.resource.data.fileType in ["image", "video"];
-      allow update, delete: if isElevated();
+      allow write: if isElevated();
     }
 
     match /reports/{reportId} {
       allow read: if isElevated() || (isAuthenticated() && resource.data.userId == request.auth.uid);
-      allow create: if isAuthenticated() 
-                    && request.resource.data.userId == request.auth.uid
-                    && request.resource.data.fileType in ["image", "video"];
-      allow update, delete: if isElevated();
+      allow write: if isElevated();
+    }
+
+    match /notifications/{notifId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || resource.data.userId == 'global' || isElevated());
+      allow create: if isElevated();
+      allow update: if isAuthenticated() && (
+                      (resource.data.userId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']))
+                      || 
+                      (resource.data.userId == 'global' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readBy']))
+                      || isElevated()
+                    );
+      allow delete: if (isAuthenticated() && resource.data.userId == request.auth.uid) || isElevated();
     }
     
     match /public_reports/{token} {

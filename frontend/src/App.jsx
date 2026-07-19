@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute, PublicRoute, RootRedirect } from './components/ProtectedRoute';
@@ -24,6 +25,11 @@ import PublicReportPage from './pages/PublicReportPage';
 import MaintenancePage from './pages/MaintenancePage';
 
 export default function App() {
+  useEffect(() => {
+    // Silently ping the backend to wake up the free Render instance on load
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/health`).catch(() => {});
+  }, []);
+
   return (
     <AuthProvider>
       <ThemeProvider>
