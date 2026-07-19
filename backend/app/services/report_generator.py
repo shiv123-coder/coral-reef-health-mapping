@@ -82,21 +82,24 @@ def _make_styles():
 
 def _health_bar_chart(data: Dict[str, float]) -> Drawing:
     """Generate vertical bar chart for health percentages."""
-    drawing = Drawing(400, 200)
+    drawing = Drawing(240, 160)
     chart = VerticalBarChart()
-    chart.x = 50
-    chart.y = 30
-    chart.height = 150
-    chart.width = 320
+    chart.x = 30
+    chart.y = 20
+    chart.height = 120
+    chart.width = 180
 
-    labels = ["Healthy", "Bleached", "Dead", "Algae", "Sand", "Rock"]
+    labels = ["Healthy", "Bleach", "Dead", "Algae", "Sand", "Rock"]
     keys = ["healthyCoralPct", "bleachedCoralPct", "deadCoralPct", "algaePct", "sandPct", "rockPct"]
     values = [data.get(k, 0) for k in keys]
 
     chart.data = [values]
     chart.categoryAxis.categoryNames = labels
+    chart.categoryAxis.labels.fontSize = 7
+    chart.categoryAxis.labels.angle = 45
     chart.valueAxis.valueMin = 0
     chart.valueAxis.valueMax = 100
+    chart.valueAxis.labels.fontSize = 8
     chart.bars[0].fillColor = TEAL
     chart.bars[0].strokeColor = TEAL
     drawing.add(chart)
@@ -150,6 +153,9 @@ def generate_pdf_report(
     ))
     story.append(Spacer(1, 12))
 
+    # Left Column setup
+    left_col = []
+    
     # Uploader info table
     user_info = [
         ["Field", "Value"],
@@ -160,23 +166,23 @@ def generate_pdf_report(
         ["Input File", report_data.get("fileName", "N/A")],
         ["Location", report_data.get("location", "Not specified")],
     ]
-    user_table = Table(user_info, colWidths=[120, 300])
+    user_table = Table(user_info, colWidths=[80, 160])
     user_table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), TEAL),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT_BG]),
         ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("TOPPADDING", (0, 0), (-1, -1), 6),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
     ]))
-    story.append(Paragraph("Uploader Information", styles["SectionHead"]))
-    story.append(user_table)
-    story.append(Spacer(1, 16))
+    left_col.append(Paragraph("Uploader Information", styles["SectionHead"]))
+    left_col.append(user_table)
+    left_col.append(Spacer(1, 10))
 
-    # Health metrics — use admin overrides if finalized
+    # Health metrics
     metrics = {
         "healthyCoralPct": report_data.get("healthyCoralPct", 0),
         "bleachedCoralPct": report_data.get("bleachedCoralPct", 0),
@@ -189,7 +195,6 @@ def generate_pdf_report(
     risk = report_data.get("riskLevel", "Minimal")
     risk_color = DANGER if risk in ("Critical", "High") else WARN if risk == "Moderate" else TEAL
 
-    story.append(Paragraph("Reef Health Metrics", styles["SectionHead"]))
     metrics_data = [
         ["Metric", "Percentage"],
         ["Healthy Coral", f"{metrics['healthyCoralPct']:.1f}%"],
@@ -201,26 +206,23 @@ def generate_pdf_report(
         ["Risk Level", risk],
         ["Bleaching Index", f"{report_data.get('bleachingPercentage', 0):.1f}%"],
     ]
-    metrics_table = Table(metrics_data, colWidths=[200, 220])
+    metrics_table = Table(metrics_data, colWidths=[120, 120])
     metrics_table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), TEAL),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, -1), 10),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
         ("ROWBACKGROUNDS", (0, 1), (-1, -2), [colors.white, LIGHT_BG]),
         ("BACKGROUND", (0, -1), (-1, -1), risk_color),
         ("TEXTCOLOR", (0, -1), (-1, -1), colors.white),
         ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
         ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
-        ("TOPPADDING", (0, 0), (-1, -1), 8),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
     ]))
-    story.append(metrics_table)
-    story.append(Spacer(1, 16))
-
-    # Bar chart
-    story.append(_health_bar_chart(metrics))
-    story.append(Spacer(1, 16))
+    left_col.append(Paragraph("Reef Health Metrics", styles["SectionHead"]))
+    left_col.append(metrics_table)
+    left_col.append(Spacer(1, 10))
 
     # AI Conclusion
     conclusion = report_data.get("aiConclusion") or report_data.get("ai_conclusion") or (
@@ -228,60 +230,85 @@ def generate_pdf_report(
         f"{metrics['bleachedCoralPct']:.1f}% bleaching. Overall risk level: {risk}. "
         f"{'Immediate monitoring recommended.' if risk in ('Critical', 'High') else 'Reef appears stable.'}"
     )
-    story.append(Paragraph("AI Assessment Conclusion", styles["SectionHead"]))
-    story.append(Paragraph(conclusion, styles["Body"]))
+    left_col.append(Paragraph("AI Assessment Conclusion", styles["SectionHead"]))
+    left_col.append(Paragraph(conclusion, styles["Body"]))
 
     if report_data.get("adminNotes"):
-        story.append(Spacer(1, 8))
-        story.append(Paragraph("Administrator Notes", styles["SectionHead"]))
-        story.append(Paragraph(report_data["adminNotes"], styles["Body"]))
+        left_col.append(Spacer(1, 8))
+        left_col.append(Paragraph("Administrator Notes", styles["SectionHead"]))
+        left_col.append(Paragraph(report_data["adminNotes"], styles["Body"]))
 
     # Diseases table
     diseases = report_data.get("diseases", [])
     if diseases:
-        story.append(Paragraph("Detected Anomalies / Diseases", styles["SectionHead"]))
+        left_col.append(Spacer(1, 10))
+        left_col.append(Paragraph("Detected Anomalies", styles["SectionHead"]))
         dis_data = [["Type", "Severity", "Affected %"]]
-        for d in diseases[:5]:
+        for d in diseases[:3]:
             dis_data.append([d.get("type", ""), d.get("severity", ""), f"{d.get('affected_percent', 0):.1f}%"])
-        dis_table = Table(dis_data, colWidths=[180, 120, 120])
+        dis_table = Table(dis_data, colWidths=[100, 70, 70])
         dis_table.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), DARK),
             ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
             ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-            ("TOPPADDING", (0, 0), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ("FONTSIZE", (0, 0), (-1, -1), 8),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
         ]))
-        story.append(dis_table)
+        left_col.append(dis_table)
 
+    # Right Column setup
+    right_col = []
+    
+    right_col.append(Paragraph("Composition Analysis", styles["SectionHead"]))
+    right_col.append(_health_bar_chart(metrics))
+    
     # Annotated image
     if annotated_image_path:
-        story.append(Spacer(1, 16))
-        story.append(Paragraph("Annotated Analysis Image", styles["SectionHead"]))
-        
+        right_col.append(Spacer(1, 10))
+        right_col.append(Paragraph("Annotated Image Mapping", styles["SectionHead"]))
         try:
             if annotated_image_path.startswith("http"):
                 req = urllib.request.Request(annotated_image_path, headers={"User-Agent": "Mozilla/5.0"})
                 with urllib.request.urlopen(req) as response:
                     img_data = io.BytesIO(response.read())
-                img = RLImage(img_data, width=4 * inch, height=3 * inch)
+                img = RLImage(img_data, width=3.3 * inch, height=2.4 * inch)
             elif os.path.exists(annotated_image_path):
-                img = RLImage(annotated_image_path, width=4 * inch, height=3 * inch)
+                img = RLImage(annotated_image_path, width=3.3 * inch, height=2.4 * inch)
             else:
                 img = None
-                
             if img:
-                story.append(img)
+                right_col.append(img)
         except Exception as e:
             print(f"Failed to embed image in PDF: {e}")
 
     # QR Code section
-    story.append(Spacer(1, 20))
-    story.append(Paragraph("Scan to View Live Report Online", styles["SectionHead"]))
-    qr_buf = _generate_qr_image(public_url)
-    qr_img = RLImage(qr_buf, width=1.2 * inch, height=1.2 * inch)
-    story.append(qr_img)
-    story.append(Paragraph(public_url, styles["Footer"]))
+    right_col.append(Spacer(1, 10))
+    right_col.append(Paragraph("Live Verification Portal", styles["SectionHead"]))
+    
+    qr_data = [
+        [RLImage(_generate_qr_image(public_url), width=1.3 * inch, height=1.3 * inch), 
+         Paragraph(f"Scan this QR code or visit:<br/>{public_url}<br/><br/>to view the verified live telemetry report.", styles["Body"])]
+    ]
+    qr_table = Table(qr_data, colWidths=[1.4 * inch, 2.0 * inch])
+    qr_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+    ]))
+    right_col.append(qr_table)
+
+    # Master Table Layout
+    master_table = Table([[left_col, right_col]], colWidths=[260, 260])
+    master_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+        ("TOPPADDING", (0, 0), (-1, -1), 0),
+    ]))
+    
+    story.append(master_table)
 
     # Footer
     story.append(Spacer(1, 20))
