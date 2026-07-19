@@ -2,7 +2,7 @@
 inference.py — Unified inference pipeline for production use.
 
 Combines YOLO detection + DeepLabV3+ segmentation + EfficientNet classification
-to produce health percentages, risk level, and annotated output image.
+using ONNXRuntime for blazingly fast CPU execution.
 """
 
 import os
@@ -12,8 +12,6 @@ from typing import Dict, Any, Optional, Tuple
 
 import cv2
 import numpy as np
-import torch
-import torch.nn as nn
 from PIL import Image
 from dotenv import load_dotenv
 
@@ -21,7 +19,6 @@ load_dotenv(Path(__file__).parent.parent / ".env.production")
 
 BASE_DIR = Path(__file__).parent
 WEIGHTS_DIR = BASE_DIR / "weights"
-DEVICE = torch.device(os.getenv("INFERENCE_DEVICE", "cuda" if torch.cuda.is_available() else "cpu"))
 CONF_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.65"))
 
 CLASSES = ["healthy_coral", "bleached_coral", "dead_coral", "algae", "sand", "rock"]
@@ -38,68 +35,88 @@ CLASS_COLORS = {
 _yolo_model = None
 _seg_model = None
 _cls_model = None
-_cls_names = None
+_cls_names = CLASSES
 
 
 def _load_yolo():
     global _yolo_model
     if _yolo_model is None:
         from ultralytics import YOLO
-        path = WEIGHTS_DIR / "yolo_best.pt"
-        _yolo_model = YOLO(str(path) if path.exists() else "yolo11n.pt")
+        path = WEIGHTS_DIR / "yolo_best.onnx"
+        if not path.exists():
+            path = WEIGHTS_DIR / "yolo_best.pt"
+            if not path.exists():
+                path = "yolo11n.pt"
+        _yolo_model = YOLO(str(path), task='detect')
     return _yolo_model
 
 
 def _load_segmentation():
     global _seg_model
     if _seg_model is None:
-        from torchvision.models.segmentation import deeplabv3_resnet50
-        path = WEIGHTS_DIR / "deeplabv3_best.pth"
-        num_classes = len(CLASSES) + 1
-        _seg_model = deeplabv3_resnet50(weights=None, num_classes=num_classes)
-        if path.exists():
-            _seg_model.load_state_dict(torch.load(path, map_location=DEVICE, weights_only=True))
-        _seg_model = _seg_model.to(DEVICE).eval()
+        onnx_path = WEIGHTS_DIR / "deeplabv3_best.onnx"
+        if onnx_path.exists():
+            import onnxruntime as ort
+            _seg_model = ort.InferenceSession(str(onnx_path), providers=['CPUExecutionProvider'])
+            _seg_model.is_onnx = True
+        else:
+            # Fallback to PyTorch
+            import torch
+            from torchvision.models.segmentation import deeplabv3_resnet50
+            if not torch.cuda.is_available():
+                torch.set_num_threads(1)
+            path = WEIGHTS_DIR / "deeplabv3_best.pth"
+            num_classes = len(CLASSES) + 1
+            _seg_model = deeplabv3_resnet50(weights=None, num_classes=num_classes)
+            if path.exists():
+                _seg_model.load_state_dict(torch.load(path, map_location="cpu", weights_only=True), strict=False)
+            _seg_model = _seg_model.to("cpu").eval()
+            _seg_model.is_onnx = False
     return _seg_model
 
 
 def _load_classifier():
-    global _cls_model, _cls_names
+    global _cls_model
     if _cls_model is None:
-        from torchvision import models, transforms
-        path = WEIGHTS_DIR / "efficientnet_best.pth"
-        if path.exists():
-            ckpt = torch.load(path, map_location=DEVICE, weights_only=False)
-            _cls_names = ckpt.get("class_names", CLASSES)
-            _cls_model = models.efficientnet_b0(weights=None)
-            _cls_model.classifier[1] = nn.Linear(_cls_model.classifier[1].in_features, ckpt["num_classes"])
-            _cls_model.load_state_dict(ckpt["model_state_dict"])
+        onnx_path = WEIGHTS_DIR / "efficientnet_best.onnx"
+        if onnx_path.exists():
+            import onnxruntime as ort
+            _cls_model = ort.InferenceSession(str(onnx_path), providers=['CPUExecutionProvider'])
+            _cls_model.is_onnx = True
         else:
-            _cls_names = CLASSES
-            _cls_model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
-            _cls_model.classifier[1] = nn.Linear(_cls_model.classifier[1].in_features, len(CLASSES))
-        _cls_model = _cls_model.to(DEVICE).eval()
-    return _cls_model, _cls_names
+            # Fallback to PyTorch
+            import torch
+            import torch.nn as nn
+            from torchvision import models
+            if not torch.cuda.is_available():
+                torch.set_num_threads(1)
+            path = WEIGHTS_DIR / "efficientnet_best.pth"
+            if path.exists():
+                ckpt = torch.load(path, map_location="cpu", weights_only=False)
+                num_classes = ckpt.get("num_classes", len(CLASSES))
+                _cls_model = models.efficientnet_b0(weights=None)
+                _cls_model.classifier[1] = nn.Linear(_cls_model.classifier[1].in_features, num_classes)
+                _cls_model.load_state_dict(ckpt["model_state_dict"])
+            else:
+                _cls_model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
+                _cls_model.classifier[1] = nn.Linear(_cls_model.classifier[1].in_features, len(CLASSES))
+            _cls_model = _cls_model.to("cpu").eval()
+            _cls_model.is_onnx = False
+    return _cls_model
 
 
 def preprocess_image(image: np.ndarray) -> np.ndarray:
     """Underwater image preprocessing: denoise, color correction, contrast."""
-    # Bilateral denoise
     denoised = cv2.bilateralFilter(image, 9, 75, 75)
-
-    # Red channel compensation (underwater blue-green cast)
     b, g, r = cv2.split(denoised.astype(np.float32))
     r = np.clip(r * 1.3, 0, 255)
     g = np.clip(g * 1.1, 0, 255)
     corrected = cv2.merge([b, g, r]).astype(np.uint8)
-
-    # CLAHE contrast enhancement on L channel
     lab = cv2.cvtColor(corrected, cv2.COLOR_BGR2LAB)
     l, a, b_ch = cv2.split(lab)
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     l = clahe.apply(l)
     enhanced = cv2.cvtColor(cv2.merge([l, a, b_ch]), cv2.COLOR_LAB2BGR)
-
     return enhanced
 
 
@@ -112,30 +129,39 @@ def run_detection(image: np.ndarray) -> list:
         for box in r.boxes:
             cls_id = int(box.cls[0])
             conf = float(box.conf[0])
-            xyxy = box.xyxy[0].cpu().numpy().tolist()
+            # YOLO results are in CPU memory regardless of ONNX
+            xyxy = box.xyxy[0].cpu().numpy().tolist() if hasattr(box.xyxy[0], 'cpu') else box.xyxy[0].tolist()
             name = CLASSES[cls_id] if cls_id < len(CLASSES) else "unknown"
             detections.append({"class": name, "confidence": conf, "bbox": xyxy})
     return detections
 
 
 def run_segmentation(image: np.ndarray) -> Tuple[np.ndarray, Dict[str, float]]:
-    """DeepLabV3+ semantic segmentation → class percentages."""
-    from torchvision import transforms
-
+    """DeepLabV3+ semantic segmentation."""
     model = _load_segmentation()
     h, w = image.shape[:2]
 
-    pil = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-    transform = transforms.Compose([
-        transforms.Resize((256, 256)),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-    ])
-    tensor = transform(pil).unsqueeze(0).to(DEVICE)
+    # Preprocessing
+    image_resized = cv2.resize(image, (256, 256))
+    image_rgb = cv2.cvtColor(image_resized, cv2.COLOR_BGR2RGB)
+    
+    mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
+    std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
+    
+    tensor = (image_rgb.astype(np.float32) / 255.0 - mean) / std
+    tensor = tensor.transpose(2, 0, 1)
+    tensor = np.expand_dims(tensor, 0) # Shape: (1, 3, 256, 256)
 
-    with torch.no_grad():
-        out = model(tensor)["out"]
-        mask = out.argmax(dim=1).squeeze().cpu().numpy()
+    if getattr(model, 'is_onnx', False):
+        input_name = model.get_inputs()[0].name
+        out = model.run(None, {input_name: tensor})[0]
+        mask = np.argmax(out, axis=1).squeeze(0)
+    else:
+        import torch
+        t_in = torch.from_numpy(tensor).to("cpu")
+        with torch.no_grad():
+            out = model(t_in)["out"]
+            mask = out.argmax(dim=1).squeeze().numpy()
 
     mask = cv2.resize(mask.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST)
 
@@ -150,21 +176,33 @@ def run_segmentation(image: np.ndarray) -> Tuple[np.ndarray, Dict[str, float]]:
 
 def run_classification(image: np.ndarray) -> Dict[str, Any]:
     """EfficientNet image-level classification."""
-    from torchvision import transforms
-
-    model, class_names = _load_classifier()
-    pil = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-    transform = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-    ])
-    tensor = transform(pil).unsqueeze(0).to(DEVICE)
-
-    with torch.no_grad():
-        outputs = model(tensor)
-        probs = torch.softmax(outputs, dim=1)[0].cpu().numpy()
-
+    model = _load_classifier()
+    class_names = _cls_names
+    
+    image_resized = cv2.resize(image, (224, 224))
+    image_rgb = cv2.cvtColor(image_resized, cv2.COLOR_BGR2RGB)
+    
+    mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
+    std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
+    
+    tensor = (image_rgb.astype(np.float32) / 255.0 - mean) / std
+    tensor = tensor.transpose(2, 0, 1)
+    tensor = np.expand_dims(tensor, 0)
+    
+    if getattr(model, 'is_onnx', False):
+        input_name = model.get_inputs()[0].name
+        outputs = model.run(None, {input_name: tensor})[0]
+        logits = outputs[0]
+    else:
+        import torch
+        t_in = torch.from_numpy(tensor).to("cpu")
+        with torch.no_grad():
+            logits = model(t_in)[0].numpy()
+            
+    # Softmax
+    exp_scores = np.exp(logits - np.max(logits))
+    probs = exp_scores / np.sum(exp_scores)
+    
     top_idx = int(np.argmax(probs))
     return {
         "predicted_class": class_names[top_idx],
@@ -198,7 +236,7 @@ def detect_disease(image: np.ndarray, mask: np.ndarray) -> list:
     diseases = []
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-    # White patch detection (potential bleaching/disease)
+    # White patch detection
     white_mask = cv2.inRange(hsv, (0, 0, 180), (180, 40, 255))
     coral_region = mask > 0
     white_in_coral = np.sum(white_mask[coral_region] > 0)
@@ -253,7 +291,6 @@ def annotate_image(image: np.ndarray, mask: np.ndarray, detections: list) -> np.
 def run_full_inference(image_path: str, output_dir: Optional[str] = None) -> Dict[str, Any]:
     """
     Full inference pipeline on a single image.
-
     Returns dict with percentages, risk, detections, diseases, classification, paths.
     """
     image = cv2.imread(image_path)
